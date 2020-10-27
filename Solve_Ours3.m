@@ -16,7 +16,7 @@ function [x, val] = Solve_Ours3(A, y)
     u = ones(n, 1);
     z = ones(n, 1);
     
-    for i=1:100
+    for i=1:10000
         s = aa * (z - x0 + u);
         
         c     = - u + x0 + a*s;
@@ -39,6 +39,12 @@ function [x, val] = Solve_Ours3(A, y)
         z_max  = (sum(c_sort(1:j-1)) - 1/rho) / (j-1);
         z      = min(z_max,c_abs);
         z(c<0) = -z(c<0);
+        
+        if i > 1 && norm(s - s_prev) <= 1e-6
+            break;
+        end
+        
+        s_prev = s;
         
         u = u + z - x0 - a*s;
     end

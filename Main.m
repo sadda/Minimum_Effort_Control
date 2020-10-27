@@ -1,10 +1,10 @@
 clear all;
 
-A_type = 6;
+A_type = 1;
 
 switch A_type
     case 1
-        A = [1, cos(2*pi/3) cos(-2*pi/3); ...
+        A = 2/3*[1, cos(2*pi/3) cos(-2*pi/3); ...
             0, sin(2*pi/3), sin(-2*pi/3)];
     case 2
         A = 2/5*[1, cos(2*pi/5), cos(4*pi/5), cos(-4*pi/5), cos(-2*pi/5); ...
@@ -27,9 +27,8 @@ m  = mn(1);
 n  = mn(2);
 
 
-y = rand(m,1);
-
-
+% y = rand(m,1);
+y = [-325.2691; 0];
 
 [x1, val1] = Solve_Linprog(A, y, 1);
 [x2, val2] = Solve_Linprog(A, y, 0);
