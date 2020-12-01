@@ -1,0 +1,112 @@
+\documentclass{article}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphics}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{pgf, tikz}
+\usetikzlibrary{patterns, arrows, automata, shapes, fit}
+\usepackage{pgfplotstable}
+\usepackage{todonotes}
+\usepackage{comment}
+\usepackage{bm}
+
+\usepackage{pgfplots}
+
+\usepackage[section]{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\mnmz}{\operatorname*{minimize}}
+\newcommand{\mxmz}{\operatorname*{maximize}}
+\newcommand{\st}{\operatorname{subject\ to}}
+\newcommand{\argmin}{\operatorname*{argmin}}
+
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\nrm}[1]{|#1|}
+\newcommand{\loss}{\operatorname{loss}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Ycal}{\mathcal{Y}}
+
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{hypothesis}[thm]{Hypothesis}
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{corollary}[thm]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{assumption}[thm]{Assumption}
+
+
+
+\usepackage{a4wide}
+
+
+
+\makeatletter
+\DeclareRobustCommand{\rvdots}{%
+  \vbox{
+    \baselineskip4\p@\lineskiplimit\z@
+    \kern-\p@
+    \hbox{.}\hbox{.}\hbox{.}
+  }}
+\makeatother
+
+
+\newcommand{\relu}{\operatorname{ReLU}}
+
+
+\begin{document}
+
+Primal problem
+\begin{equation}\label{eq:primal}
+  \aligned
+  \mnmz_x\qquad &\norm{x}_\infty \\
+  \st\qquad &Ax=y.
+  \endaligned
+\end{equation}
+
+Dual problem
+\begin{equation}\label{eq:dual}
+  \aligned
+  \mxmz_u\qquad &y^\top u \\
+  \st\qquad &\norm{A^\top u}_1 \le 1.
+  \endaligned
+\end{equation}
+
+Dual problem enhanced
+\begin{equation}\label{eq:dual_enh}
+  \aligned
+  \mxmz_{u^+,u^-,z^+,z^-,w}\qquad &y^\top u^+ - y^\top u^-  \\
+  \st\qquad &A^\top u^+ - A^\top u^- - z^+ + z^- = 0, \\
+  &\sum(z_i^+ + z_i^-) + w = 1, \\
+  &u^+,u^-,z^+,z^-,w \ge0.
+  \endaligned
+\end{equation}
+
+Comments
+\begin{itemize}\itemsep 0pt
+ \item All three problems are equivalent and they are linear problems.
+ \item Each linear problem has a solution in an extremal point (corner) of its feasible set. The number of extremal points is finite.
+ \item The solution set of \eqref{eq:dual} does not depend on $y$. Denote the finite set of extremal points by $U$.
+ \item Previous two bullets imply the following: For every $y$, there is always some $u\in U$ which solves \eqref{eq:dual}.
+ \item I do not know how to compute the extremal points of \eqref{eq:dual} but there is a formula for computing the extremal points of \eqref{eq:dual_enh}.
+\end{itemize}
+
+This suggests that the way to go is to compute the extremal points of \eqref{eq:dual_enh}. Since they are in an enhanced space $(u^+,u^-,z^+,z^-,w)$, we reduce them into the original space $u$ corresponding to problem \eqref{eq:dual}. This reduction will create a superset of the extremal points of \eqref{eq:dual}. But there is a way of obtaining the set of extremal points of \eqref{eq:dual} from this superset.
+
+\end{document}
