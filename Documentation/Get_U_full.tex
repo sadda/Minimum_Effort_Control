@@ -1,0 +1,226 @@
+\documentclass{article}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphics}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{pgf, tikz}
+\usetikzlibrary{patterns, arrows, automata, shapes, fit}
+\usepackage{pgfplotstable}
+\usepackage{todonotes}
+\usepackage{comment}
+\usepackage{bm}
+
+\usepackage{pgfplots}
+
+\usepackage[section]{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\algnewcommand\Offline{\item[\textbf{Offline:}]}
+
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\mnmz}{\operatorname*{minimize}}
+\newcommand{\mxmz}{\operatorname*{maximize}}
+\newcommand{\st}{\operatorname{subject\ to}}
+\newcommand{\argmin}{\operatorname*{argmin}}
+
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\nrm}[1]{|#1|}
+\newcommand{\loss}{\operatorname{loss}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Ycal}{\mathcal{Y}}
+
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{hypothesis}[thm]{Hypothesis}
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{corollary}[thm]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{assumption}[thm]{Assumption}
+
+
+\newcommand{\argmax}{\operatorname{argmax}}
+\newcommand{\rank}{\operatorname{rank}}
+
+
+\usepackage{a4wide}
+
+
+
+\makeatletter
+\DeclareRobustCommand{\rvdots}{%
+  \vbox{
+    \baselineskip4\p@\lineskiplimit\z@
+    \kern-\p@
+    \hbox{.}\hbox{.}\hbox{.}
+  }}
+\makeatother
+
+
+\newcommand{\relu}{\operatorname{ReLU}}
+
+
+\begin{document}
+
+Primal problem
+\begin{equation}\label{eq:primal}
+  \aligned
+  \mnmz_x\qquad &\norm{x}_\infty \\
+  \st\qquad &Ax=y.
+  \endaligned
+\end{equation}
+
+Dual problem
+\begin{equation}\label{eq:dual}
+  \aligned
+  \mxmz_u\qquad &y^\top u \\
+  \st\qquad &\norm{A^\top u}_1 \le 1.
+  \endaligned
+\end{equation}
+
+\begin{theorem}
+  There is a finite set $U$ such that for any $y$, there exists some $u\in U$ such that $u$ is the solution of \eqref{eq:dual} for $y$. This $U$ equals to the set of extremal points of $\{u\mid \norm{A^\top u}_1\le 1\}$.
+\end{theorem}
+
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+  \Offline Compute the set $U$ with finite number of elements
+  \Require $y$ for which we need to solve \eqref{eq:primal}
+  \State Select $\bar u \in \argmax_{u\in U}y^\top u$. It solves \eqref{eq:dual}
+  \State Based on complementarity find the solution of \eqref{eq:primal}
+\end{algorithmic}
+\end{algorithm}
+
+
+\appendix
+
+\section{Appendix}
+
+Computing directly the set of extremal points of the feasible set of \eqref{eq:dual} is complicated. However, there is a connected set, for which the computation is possible. We describe it in the following statement.
+
+
+
+\begin{algorithm}
+\caption{For finding extremal points of the set $\{v\mid Bv=b,\ v\ge 0\}$}
+\label{alg:extremal}
+\begin{algorithmic}[1]
+  \Require Matrix $B$ of size $(m,n)$ with $\rank B=m$
+  \State $V\gets\emptyset$
+  \State Denote by $\mathcal I$ the set of all tuples of length $m$ selected from $1,\dots,n$ (without replacement).
+  \For{$I\in\mathcal I$}
+    \State Let $B_{\rm sub} := B_{\cdot,I}$ be the $(m,m)$ submatrix of $B$ with columns indexed by $I$
+    \If{$\rank B_{\rm sub} = m$}
+      \State Compute the unique solution $z_{\rm sub}$ of $B_{\rm sub}z_{\rm sub} = b$
+      \If{$z_{\rm sub}\ge 0$}
+        \State Define the vector $z$ with $0$ everywhere and $z_{\rm sub}$ on $I$
+        \State $V\gets V\cup\{z\}$
+      \EndIf              
+    \EndIf
+  \EndFor
+  \Ensure $V$ as the set of extremal points of \eqref{eq:extremal_set}
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+\begin{proposition}\label{prop:extremal}
+  Consider matrix $B$ of size $(m,n)$ with $\rank B=m$ and any vector $b$. Then Algorithm \ref{alg:extremal} computes the set of all extremal points of
+  \begin{equation}\label{eq:extremal_set}
+    \{v\mid Bv=b,\ v\ge 0\}.
+  \end{equation}
+\end{proposition}
+
+
+
+
+\begin{lemma}\label{lemma:dual_enh}
+Dual problem is equivalent to
+\begin{equation}\label{eq:dual_enh}
+  \aligned
+  \mxmz_{u^+,u^-,z^+,z^-,w}\qquad &y^\top u^+ - y^\top u^-  \\
+  \st\qquad &A^\top u^+ - A^\top u^- - z^+ + z^- = 0, \\
+  &\sum(z_i^+ + z_i^-) + w = 1, \\
+  &u^+,u^-,z^+,z^-,w \ge0.
+  \endaligned
+\end{equation}
+The solution $u$ of \eqref{eq:dual} can be recovered as $u = u^+ - u^-$.
+\end{lemma}
+\begin{proof}
+  The constraint $\norm{A^\top u}_1 \le 1$ can be equivalently written by
+  $$
+    \sum_i \nrm{A^\top u}_i \le 1
+  $$
+  Now we use the standard trick and write the absolute value as the difference of its positive and negative part $z=z^+-z^-$ with its absolute value $\nrm{z}=z^++z^-$. This gives
+  $$
+    \aligned
+    A^\top u &= z^+ - z^-, \\
+    z^+, z^- &\ge 0, \\
+    \sum_i (z_i^+ + z_i^-) &\le 1.
+    \endaligned
+  $$
+  Since there is no non-negativity constraint on $u$, we use the same trick to write $u=u^+-u^-$ with $u^+,u^-\ge 0$. Finally, we change the inequality to inequality constraint by adding a slack variable $w\ge 0$. This gives \eqref{eq:dual_enh}.
+\end{proof}
+
+Now we can use Proposition \ref{prop:extremal} to find the extremal points of the feasible set of \eqref{eq:dual_enh}. Due obtain the form necessary for the proposition, we set
+\begin{equation}\label{eq:enh_matrices}
+  \aligned
+  v &= \begin{pmatrix} u^+ & u^- & z^+& z^- & w \end{pmatrix}^\top, \\
+  B &= \begin{pmatrix} A^\top & -A^\top & -I & I & 0 \\ 0 & 0 & 1^\top & 1^\top & 1 \end{pmatrix}, \\
+  b &= \begin{pmatrix}0\\1 \end{pmatrix}.
+  \endaligned
+\end{equation}
+
+Using Proposition \ref{prop:extremal} we can compute the extramal points of the feasible set of \eqref{eq:dual_enh}. This is done in the first two steps of Algorithm \ref{alg:extremal2}. These points have components $\begin{pmatrix} u^+ & u^- & z^+& z^- & w \end{pmatrix}$ while the feasible set of \eqref{eq:dual} is only in the $u$-space. Proposition \ref{prop:extremal} also says that to get to the $u$-space, we need to set $u=u^+-u^-$. This is done in the next two steps of Algorithm \ref{alg:extremal2}. However, this procedure is likely to create a superset of the set of extremal points of \eqref{eq:dual}. For this reason, we remove the points which lie in the interior (and thus, they cannot be extremal).
+
+The next lemma proves that this procedure indeed finds all extremal points of \eqref{eq:dual}.
+
+\begin{lemma}
+  If $A$ has full row rank, then the set $U$ found by Algorithm \ref{alg:extremal2} is the set of extremal points of \eqref{eq:dual}.
+\end{lemma}
+\begin{proof}
+  %Lemma \ref{lemma:dual_enh} says that the solution $u$ of \eqref{eq:dual} can be recovered as $u = u^+ - u^-$.
+\ \\
+\todo[inline]{Difficult.}
+\end{proof}
+
+
+
+
+
+\begin{algorithm}
+\caption{For finding $U$}
+\label{alg:extremal2}
+\begin{algorithmic}[1]
+  \Require Matrix $A$ of size $(k,l)$ with $\rank A=k$
+  \State Set $B$ and $b$ as in \eqref{eq:enh_matrices}
+  \State Use Algorithm \ref{alg:extremal} to compute $V$
+  \State Enumerate $V = \{\begin{pmatrix} u^{+,i} & u^{-,i} & z^{+,i}& z^{-,i} & w^i \end{pmatrix}\}_{i=1}^I$
+  \State Set $U = \{u^{+,i} - u^{-,i}\}_{i=1}^I$
+  \State Remove all points from $U$ which are in the interior of its convex hull
+  \Ensure $U$ as the set of extremal points of \eqref{eq:dual}
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+\end{document}
