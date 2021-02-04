@@ -24,10 +24,33 @@
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{todonotes}
+\usepackage[section]{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
+\algnewcommand\Offline{\item[\textbf{Offline:}]}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{proposition}[thm]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\mnmz}{\operatorname*{minimize}}
+\newcommand{\mxmz}{\operatorname*{maximize}}
+\newcommand{\argmin}{\operatorname{argmin}}
+\newcommand{\argmax}{\operatorname{argmax}}
+\newcommand{\stt}{\operatorname{subject\ to}}
+\newcommand{\nrm}[1]{|#1|}
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\rank}{\operatorname{rank}}
 
 
 \begin{document}
@@ -151,57 +174,76 @@ effective for real-time application...
 
 \section{Proposed Solution}
 
-\subsection{Solution way for m (m + 1) matrices}
+\subsection{Solution way for $m\times(m + 1)$ matrices}
 
-..... 
 
-If matrix A is of size m (m + 1) and if its rank is m (its rows are
-independent), then we have 
+If matrix $A$ is of size $m\times(m+1)$ and if its rank is $m$ (its rows are independent), then we have
+$$
+  \{x\mid Ax=y\} = \{x^0 + sa\mid s\in\R\},
+$$
+where $x^0$ is an arbitrary point which satisfies $Ax^0=y$ and $a$ is a nonzero element of kernel of A (it satisfies $Aa=0$). Then \eqref{eq:primal} is equivalent to
+$$
+  \aligned
+  \mnmz_{x,s}\ &\norm{x}_\infty \\
+  \stt\ &x = x^0 + sa,
+  \endaligned
+$$ 
+which amounts solving an optimization problem in one dimension
+\begin{equation}\label{eq:problem}
+  \aligned
+  \mnmz_{s}\ &\norm{x^0+sa}_\infty.
+  \endaligned
+\end{equation}
 
-fx j Ax = yg = fx0 + sa j s 2 Rg; where x0 is an arbitrary point which
-satises Ax0 = y and a is a nonzero element of kernel of A (it satises
-Aa = 0). Then (1) is equivalent to minimize x;s kxk1 subject to x
-= x0 + sa; which amounts solving an optimization problem in one dimension
-minimize s kx0 + sak1: (3) For the the optimal solution of (3), there
-will be some indices i 6= j such that the components satisfy (x0 +
-sa)i = (x0 + sa)j : This have two solutions (if properly dened)
+For the the optimal solution of \eqref{eq:problem}, there will be some indices $i\neq j$ such that the components satisfy
+$$
+  (x^0+sa)_i = \pm(x^0+sa)_j.
+$$
+This have two solutions (if properly defined)
+$$
+  \aligned
+  s^1 &= \frac{-x^0_i+x_j^0}{a_i-a_j}, \\
+  s^2 &= \frac{-x^0_i-x_j^0}{a_i+a_j}.
+  \endaligned
+$$
+Then among all these $s$, we select the one with minimal $\norm{x^0+sa}_\infty$. We summarize the procedure in Algorithm \ref{alg1}.
 
-\includegraphics{Figures/temp3}
+\begin{algorithm}
+  \caption{For solving \eqref{eq:primal} with one degree of freedom}
+  \label{alg1}
+  \begin{algorithmic}[1]
+    \State Find some nonzero $\bm a$ such that $A\bm a=0$
+    \State Find some $\bm x^0$ such that $A\bm x^0=\bm y$
+    \State $f_{\rm min} \gets \infty$
+    \For {$i$ in $1:m+1$}
+    \For {$j$ in $i+1:m+1$}
+    \If {$a_i\neq a_j$}
+    \State $s \gets \frac{-x^0_i+x_j^0}{a_i-a_j}$
+    \If {$\norm{\bm x^0 + s\bm a}_\infty \le f_{\rm min}$}
+    \State $f_{\rm min} \gets \norm{\bm x^0 + s\bm a}_\infty$
+    \State $s_{\rm opt} \gets s$
+    \EndIf
+    \EndIf
+    \If {$a_i\neq -a_j$}
+    \State $s \gets \frac{-x^0_i-x_j^0}{a_i+a_j}$
+    \If {$\norm{\bm x^0 + s\bm a}_\infty \le f_{\rm min}$}
+    \State $f_{\rm min} \gets \norm{\bm x^0 + s\bm a}_\infty$
+    \State $s_{\rm opt} \gets s$
+    \EndIf
+    \EndIf
+    \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
 
-Then among all these s, we select the one with minimal kx0+sak1. We
-summarize the procedure in Algorithm 1.1.
 
-\includegraphics[width=0.9\columnwidth]{Figures/temp}
+\todo[inline]{What is the complexity of the algorithm?}
 
 \includegraphics[width=0.9\columnwidth]{Figures/ilust_obr_x0+sa}
 
-\subsection{Solution way for a general matrix A}
 
-....
 
-When A is of a dierent size, then the kernel is no longer a line but
-a more dimensional spaces whose dimension equals to the degree of
-freedom. Denote the generators of this space by a1; : : : ; aK. Then
-we have again
-
-\includegraphics{Figures/temp2}
-
-This means that (3) is replaced by
-
-\includegraphics{Figures/temp1}
-
-...
-
-Solution by ADMM
-
-\includegraphics[width=0.9\columnwidth]{Figures/temp4}
-
-...
-
-...Problem solving requires high processing power, not very effective
-in real-time environment....
-
-\subsection{Solution of Dual Problem}
+\subsection{Solution way for a general matrix $A$}
 
 ... Duality of $\ell_{1}$ and $\ell_{\infty}$ norm (D. G. Luenberger)
 \cite{Luenberger1997optimization}. Dual problem defined by Cadzow:
@@ -221,19 +263,171 @@ i.e.
 \begin{equation}
 \left\Vert \mathbf{x}^{0}\right\Vert _{\infty}=\mathbf{y}^{T}\mathbf{u}^{0}=\left[\mathbf{A}^{T}\mathbf{u}^{0}\right]^{T}\mathbf{x}^{0}.
 \end{equation}
-\includegraphics[width=0.9\columnwidth]{Figures/temp5}
 
-\includegraphics[width=0.9\columnwidth]{Figures/temp6}
+\subsection{???}
 
-\begin{figure}
-\noindent \begin{centering}
-\includegraphics[width=6cm]{Figures/optimized_flux_waveform_5_7_9ph}
-\par\end{centering}
-\caption{\label{fig:optimal-ratio-harmonics} Figure example}
-\end{figure}
+Primal problem
+\begin{equation}\label{eq:primal}
+  \aligned
+  \mnmz_x\qquad &\norm{x}_\infty \\
+  \stt\qquad &Ax=y.
+  \endaligned
+\end{equation}
+
+Dual problem
+\begin{equation}\label{eq:dual}
+  \aligned
+  \mxmz_u\qquad &y^\top u \\
+  \stt\qquad &\norm{A^\top u}_1 \le 1.
+  \endaligned
+\end{equation}
+
+Dual problem enhanced
+\begin{equation}\label{eq:dual_enh}
+  \aligned
+  \mxmz_{u^+,u^-,z^+,z^-,w}\qquad &y^\top u^+ - y^\top u^-  \\
+  \stt\qquad &A^\top u^+ - A^\top u^- - z^+ + z^- = 0, \\
+  &\sum(z_i^+ + z_i^-) + w = 1, \\
+  &u^+,u^-,z^+,z^-,w \ge0.
+  \endaligned
+\end{equation}
+
+Comments
+\begin{itemize}\itemsep 0pt
+ \item All three problems are equivalent and they are linear problems.
+ \item Each linear problem has a solution in an extremal point (corner) of its feasible set. The number of extremal points is finite.
+ \item The solution set of \eqref{eq:dual} does not depend on $y$. Denote the finite set of extremal points by $U$.
+ \item Previous two bullets imply the following: For every $y$, there is always some $u\in U$ which solves \eqref{eq:dual}.
+ \item I do not know how to compute the extremal points of \eqref{eq:dual} but there is a formula for computing the extremal points of \eqref{eq:dual_enh}.
+\end{itemize}
+
+This suggests that the way to go is to compute the extremal points of \eqref{eq:dual_enh}. Since they are in an enhanced space $(u^+,u^-,z^+,z^-,w)$, we reduce them into the original space $u$ corresponding to problem \eqref{eq:dual}. This reduction will create a superset of the extremal points of \eqref{eq:dual}. But there is a way of obtaining the set of extremal points of \eqref{eq:dual} from this superset.
+
+\begin{theorem}
+  There is a finite set $U$ such that for any $y$, there exists some $u\in U$ such that $u$ is the solution of \eqref{eq:dual} for $y$. This $U$ equals to the set of extremal points of $\{u\mid \norm{A^\top u}_1\le 1\}$.
+\end{theorem}
+
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+  \Offline Compute the set $U$ with finite number of elements
+  \Require $y$ for which we need to solve \eqref{eq:primal}
+  \State Select $\bar u \in \argmax_{u\in U}y^\top u$. It solves \eqref{eq:dual}
+  \State Based on complementarity find the solution of \eqref{eq:primal}
+\end{algorithmic}
+\end{algorithm}
+
+\section{??? Possibly appendix}
+
+Computing directly the set of extremal points of the feasible set of \eqref{eq:dual} is complicated. However, there is a connected set, for which the computation is possible. We describe it in the following statement.
+
+\begin{algorithm}
+\caption{For finding extremal points of the set $\{v\mid Bv=b,\ v\ge 0\}$}
+\label{alg:extremal}
+\begin{algorithmic}[1]
+  \Require Matrix $B$ of size $(m,n)$ with $\rank B=m$
+  \State $V\gets\emptyset$
+  \State Denote by $\mathcal I$ the set of all tuples of length $m$ selected from $1,\dots,n$ (without replacement).
+  \For{$I\in\mathcal I$}
+    \State Let $B_{\rm sub} := B_{\cdot,I}$ be the $(m,m)$ submatrix of $B$ with columns indexed by $I$
+    \If{$\rank B_{\rm sub} = m$}
+      \State Compute the unique solution $z_{\rm sub}$ of $B_{\rm sub}z_{\rm sub} = b$
+      \If{$z_{\rm sub}\ge 0$}
+        \State Define the vector $z$ with $0$ everywhere and $z_{\rm sub}$ on $I$
+        \State $V\gets V\cup\{z\}$
+      \EndIf              
+    \EndIf
+  \EndFor
+  \Ensure $V$ as the set of extremal points of \eqref{eq:extremal_set}
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+\begin{proposition}\label{prop:extremal}
+  Consider matrix $B$ of size $(m,n)$ with $\rank B=m$ and any vector $b$. Then Algorithm \ref{alg:extremal} computes the set of all extremal points of
+  \begin{equation}\label{eq:extremal_set}
+    \{v\mid Bv=b,\ v\ge 0\}.
+  \end{equation}
+\end{proposition}
+
+
+
+
+\begin{lemma}\label{lemma:dual_enh}
+Dual problem is equivalent to \eqref{eq:dual_enh}. The solution $u$ of \eqref{eq:dual} can be recovered as $u = u^+ - u^-$.
+\end{lemma}
+\begin{proof}
+  The constraint $\norm{A^\top u}_1 \le 1$ can be equivalently written by
+  $$
+    \sum_i \nrm{A^\top u}_i \le 1
+  $$
+  Now we use the standard trick and write the absolute value as the difference of its positive and negative part $z=z^+-z^-$ with its absolute value $\nrm{z}=z^++z^-$. This gives
+  $$
+    \aligned
+    A^\top u &= z^+ - z^-, \\
+    z^+, z^- &\ge 0, \\
+    \sum_i (z_i^+ + z_i^-) &\le 1.
+    \endaligned
+  $$
+  Since there is no non-negativity constraint on $u$, we use the same trick to write $u=u^+-u^-$ with $u^+,u^-\ge 0$. Finally, we change the inequality to inequality constraint by adding a slack variable $w\ge 0$. This gives \eqref{eq:dual_enh}.
+\end{proof}
+
+Now we can use Proposition \ref{prop:extremal} to find the extremal points of the feasible set of \eqref{eq:dual_enh}. Due obtain the form necessary for the proposition, we set
+\begin{equation}\label{eq:enh_matrices}
+  \aligned
+  v &= \begin{pmatrix} u^+ & u^- & z^+& z^- & w \end{pmatrix}^\top, \\
+  B &= \begin{pmatrix} A^\top & -A^\top & -I & I & 0 \\ 0 & 0 & 1^\top & 1^\top & 1 \end{pmatrix}, \\
+  b &= \begin{pmatrix}0\\1 \end{pmatrix}.
+  \endaligned
+\end{equation}
+
+Using Proposition \ref{prop:extremal} we can compute the extramal points of the feasible set of \eqref{eq:dual_enh}. This is done in the first two steps of Algorithm \ref{alg:extremal2}. These points have components $\begin{pmatrix} u^+ & u^- & z^+& z^- & w \end{pmatrix}$ while the feasible set of \eqref{eq:dual} is only in the $u$-space. Proposition \ref{prop:extremal} also says that to get to the $u$-space, we need to set $u=u^+-u^-$. This is done in the next two steps of Algorithm \ref{alg:extremal2}. However, this procedure is likely to create a superset of the set of extremal points of \eqref{eq:dual}. For this reason, we remove the points which lie in the interior (and thus, they cannot be extremal).
+
+The next lemma proves that this procedure indeed finds all extremal points of \eqref{eq:dual}.
+
+\begin{lemma}
+  If $A$ has full row rank, then the set $U$ found by Algorithm \ref{alg:extremal2} is the set of extremal points of \eqref{eq:dual}.
+\end{lemma}
+\begin{proof}
+  %Lemma \ref{lemma:dual_enh} says that the solution $u$ of \eqref{eq:dual} can be recovered as $u = u^+ - u^-$.
+\ \\
+\todo[inline]{Difficult.}
+\end{proof}
+
+
+
+
+
+\begin{algorithm}
+\caption{For finding $U$}
+\label{alg:extremal2}
+\begin{algorithmic}[1]
+  \Require Matrix $A$ of size $(k,l)$ with $\rank A=k$
+  \State Set $B$ and $b$ as in \eqref{eq:enh_matrices}
+  \State Use Algorithm \ref{alg:extremal} to compute $V$
+  \State Enumerate $V = \{\begin{pmatrix} u^{+,i} & u^{-,i} & z^{+,i}& z^{-,i} & w^i \end{pmatrix}\}_{i=1}^I$
+  \State Set $U = \{u^{+,i} - u^{-,i}\}_{i=1}^I$
+  \State Remove all points from $U$ which are in the interior of its convex hull
+  \Ensure $U$ as the set of extremal points of \eqref{eq:dual}
+\end{algorithmic}
+\end{algorithm}
+
+
+
 
 
 \section{Application/Control of Power Converters)}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=6cm]{Figures/optimized_flux_waveform_5_7_9ph}
+\caption{Figure example}
+\label{fig:optimal-ratio-harmonics}
+\end{figure}
+
 
 \subsection{Traditional three-phase converters}
 
@@ -265,20 +459,17 @@ text text. Text text text. Text text text. Text text text.
 
 \section{Experimental results}
 
-Some experimental results.\textcolor{red}{}
-\begin{figure}
-\begin{centering}
-\textcolor{red}{}%
+Some experimental results.
+\begin{figure}[!ht]
 \begin{tabular}{>{\centering}p{4.2cm}>{\centering}p{4.2cm}}
 \textcolor{red}{\includegraphics[width=0.48\columnwidth]{Figures/tek00002}} & \textcolor{red}{\includegraphics[width=0.48\columnwidth]{Figures/tek00002x}}\tabularnewline
  & \tabularnewline
 {\footnotesize{}(a) Fundamental with 3\textsuperscript{rd} , 5\textsuperscript{th}
 , and 7\textsuperscript{th} harmonic component.} & {\footnotesize{}(b) 3\textsuperscript{rd}harmonic component only.}\tabularnewline
 \end{tabular}
-\par\end{centering}
-\caption{\label{fig:exp-results-1} Example of experimental results}
+\caption{Example of experimental results}
+\label{fig:exp-results-1}
 \end{figure}
-\textcolor{red}{{} }
 
 \section{Conclusion}
 
