@@ -27,6 +27,8 @@
 \usepackage{amsthm}
 \usepackage{bm}
 \usepackage{todonotes}
+\usepackage{tikz}
+\usepackage{pgfplots}
 \usepackage[section]{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
@@ -487,6 +489,32 @@ Text text text. Text text text..
 
 \section*{???}
 
+Consider the interval
+$$
+ U_1 := \{u\mid -1\le u\le 1\}.
+$$
+Writing $u=u^+-u^-$ as the difference of its positive $u^+\ge 0$ and negative part $u^-\ge 0$, the previous set is connected with 
+$$
+ U_2 := \{(u^+,u^-)\mid -1\le u^+-u^-\le 1, u^+,u^-\ge 0\}.
+$$
+We depict $U_2$ in Figure \ref{fig:u2}.
+
+\begin{figure}
+ \centering
+ \begin{tikzpicture}
+  \begin{axis}[ymin=-0.5,ymax=3,xmin=-0.5,xmax=3,minor tick num=1,axis lines = middle,xlabel=$x$,ylabel=$y$]
+   \addplot [color=white,fill=blue,fill opacity=0.05] coordinates {(3,3) (2,3) (0,1) (0,0) (1,0) (3,2)};
+   \addplot [thick,color=black] coordinates {(2,3) (0,1) (0,0) (1,0) (3,2)};
+   \filldraw (axis cs: 0, 0) circle [radius=6];
+   \filldraw (axis cs: 0, 1) circle [radius=6];
+   \filldraw (axis cs: 1, 0) circle [radius=6];
+  \end{axis}
+ \end{tikzpicture}
+ \caption{???}
+ \label{fig:u2}
+\end{figure}
+
+While $U_1$ has two extremal points, $U_2$ has three extremal points. Even though these sets describe the same feasible set for optimization.
 
 \section*{Acknowledgment}
 
