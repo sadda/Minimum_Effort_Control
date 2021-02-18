@@ -26,6 +26,9 @@ function corners = Get_U(A)
     ii = convhulln(corners');
     ii = unique(ii(:));
     corners = corners(:,ii)';
+    
+    % This is used only for numerical errors
+    corners = convhulln_error(corners);
 end
 
 
@@ -42,4 +45,45 @@ function u = Get_Corner(B, b, ii)
         end
     end
 end
+
+
+function U = convhulln_error(U)
+    
+    eps = 1e-10;
+    remove = false(size(U,1),1);
+    for i = 1:size(U,1)
+        u = U(i,:);
+        d = U - u;
+        d = d ./ sum(abs(d), 2);
+        [d_sort, ii_sort] = sortrows(d);
+        
+        for j = 1:size(d_sort,1)-1
+            if norm(d_sort(j,:) - d_sort(j+1,:)) <= eps
+                j1 = ii_sort(j);
+                j2 = ii_sort(j+1);
+                d1 = U(j1,:) - u;
+                d2 = U(j2,:) - u;
+                d1_norm = sum(abs(d1));
+                d2_norm = sum(abs(d2));
+                
+                if norm(d1/d1_norm - d2/d2_norm) > eps
+                    error("Something is wrong");
+                end
+                
+                if d1_norm > d2_norm
+                    remove(j2) = true;
+                else
+                    remove(j1) = true;
+                end
+            end            
+        end
+    end
+    
+    if sum(remove) > 0
+        warning("The error-correction procedure removed %d points.", sum(remove));
+    end
+    
+    U = U(~remove,:);
+end
+
 
