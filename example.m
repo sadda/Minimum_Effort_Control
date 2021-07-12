@@ -1,6 +1,6 @@
 % Example of usage. See the GitHub readme for more comments.
 %
-% https://github.com/sadda/Motors_Linear
+% https://github.com/sadda/Minimum_Effort_Control
 
 clear all;
 close all;
