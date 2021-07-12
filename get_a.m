@@ -46,6 +46,8 @@ function A = get_a(A_type)
             A = 2/3*[1, 0, 2*cos(2*pi/3), 2*cos(4*pi/3); ...
                 0, 0, 2*sin(2*pi/3), 2*sin(4*pi/3); ...
                 0, 3/2, 0, 0];
+        otherwise
+            error("Matrix not defined");
     end
 end
 
