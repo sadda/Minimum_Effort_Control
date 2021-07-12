@@ -17,52 +17,52 @@ switch A_type
     case 1
         % 3-faz
         A = 2/3*[1, cos(2/3*pi), cos(-2/3*pi);...
-                 0, sin(2/3*pi), sin(-2/3*pi);];
+            0, sin(2/3*pi), sin(-2/3*pi);];
     case 2
         % 5-faz 3 DOF
         A = 2/5*[1, cos(2*pi/5), cos(4*pi/5), cos(-4*pi/5), cos(-2*pi/5); ...
-                 0, sin(2*pi/5), sin(4*pi/5), sin(-4*pi/5), sin(-2*pi/5);];
+            0, sin(2*pi/5), sin(4*pi/5), sin(-4*pi/5), sin(-2*pi/5);];
     case 3
         % 5-faz 1 DOF
-       A = 2/5*[1, cos(2*pi/5), cos(4*pi/5), cos(-4*pi/5), cos(-2*pi/5); ...
+        A = 2/5*[1, cos(2*pi/5), cos(4*pi/5), cos(-4*pi/5), cos(-2*pi/5); ...
             0, sin(2*pi/5), sin(4*pi/5), sin(-4*pi/5), sin(-2*pi/5); ...
             1, cos(4*pi/5), cos(-2*pi/5), cos(2*pi/5), cos(-4*pi/5); ...
-            0, sin(4*pi/5), sin(-2*pi/5), sin(2*pi/5), sin(-4*pi/5)];                     
+            0, sin(4*pi/5), sin(-2*pi/5), sin(2*pi/5), sin(-4*pi/5)];
     case 4
         % 7-faz 5 DOF
         alpha = 2*pi/7;
-       A = 2/7*[1, cos(alpha), cos(2*alpha), cos(3*alpha), cos(4*alpha), cos(5*alpha), cos(6*alpha); ...
-                0, sin(alpha), sin(2*alpha), sin(3*alpha), sin(4*alpha), sin(5*alpha), sin(6*alpha);];
+        A = 2/7*[1, cos(alpha), cos(2*alpha), cos(3*alpha), cos(4*alpha), cos(5*alpha), cos(6*alpha); ...
+            0, sin(alpha), sin(2*alpha), sin(3*alpha), sin(4*alpha), sin(5*alpha), sin(6*alpha);];
     case 5
         % 7-faz 1 DOF
         alpha = 2*pi/7;
-       A = 2/7*[1, cos(alpha), cos(2*alpha), cos(3*alpha), cos(4*alpha), cos(5*alpha), cos(6*alpha);...
-                0, sin(alpha), sin(2*alpha), sin(3*alpha), sin(4*alpha), sin(5*alpha), sin(6*alpha);...
-                1, cos(2*alpha), cos(4*alpha), cos(6*alpha), cos(8*alpha), cos(10*alpha), cos(12*alpha);...
-                0, sin(2*alpha), sin(4*alpha), sin(6*alpha), sin(8*alpha), sin(10*alpha), sin(12*alpha);...
-                1, cos(3*alpha), cos(6*alpha), cos(9*alpha), cos(12*alpha), cos(15*alpha), cos(18*alpha);...
-                0, sin(3*alpha), sin(6*alpha), sin(9*alpha), sin(12*alpha), sin(15*alpha), sin(18*alpha);];
+        A = 2/7*[1, cos(alpha), cos(2*alpha), cos(3*alpha), cos(4*alpha), cos(5*alpha), cos(6*alpha);...
+            0, sin(alpha), sin(2*alpha), sin(3*alpha), sin(4*alpha), sin(5*alpha), sin(6*alpha);...
+            1, cos(2*alpha), cos(4*alpha), cos(6*alpha), cos(8*alpha), cos(10*alpha), cos(12*alpha);...
+            0, sin(2*alpha), sin(4*alpha), sin(6*alpha), sin(8*alpha), sin(10*alpha), sin(12*alpha);...
+            1, cos(3*alpha), cos(6*alpha), cos(9*alpha), cos(12*alpha), cos(15*alpha), cos(18*alpha);...
+            0, sin(3*alpha), sin(6*alpha), sin(9*alpha), sin(12*alpha), sin(15*alpha), sin(18*alpha);];
     case 6
         % 4-faz 1 DOF
         A1 = 2/3*[1, cos(2/3*pi), cos(-2/3*pi);...
-                  0, sin(2/3*pi), sin(-2/3*pi);...
-                  1/2, 1/2, 1/2;];
-
+            0, sin(2/3*pi), sin(-2/3*pi);...
+            1/2, 1/2, 1/2;];
+        
         A2 = [1, 0, 0, -1;...
-              0, 1, 0, -1;...
-              0, 0, 1, -1;];
+            0, 1, 0, -1;...
+            0, 0, 1, -1;];
         A = A1*A2;
-  
+        
 end
 
-[m,n] = size(A);
-B = null(A);
-C = B'*B \ B';
 
+
+[m, n] = size(A);
 y = zeros(m,1);
-z = ones(n, 1);
-u = ones(n, 1);
-    
+
+U = get_u(A);
+
+
 for k = 1:N
     wt = w*t;
     
@@ -77,11 +77,10 @@ for k = 1:N
     end
     
     % Solution found by linear programming
-    [x_lp, val_lp] = Solve_Ours1(A, y);
+    x_lp = solve_linprog(A, y);
     
     % Solution found by Lukas Adam's method
-    % [x_ad, val_ad] = Solve_Ours3(A, y);
-    [x_ad, val_ad, z, u] = Solve_Ours3_Optimized(A, y, z, u, B, C);
+    x_ad = solve_ours(A, y, U);
     
     o_t(k,1) = t;
     o_y(k,:) = y';
