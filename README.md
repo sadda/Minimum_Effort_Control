@@ -12,10 +12,17 @@ The problem above can be written as a linear optimization problem. The theory of
 
 Multi-phase converters can be written as a linear system. The goal is to compute the input voltage ``x`` for the required output voltage ``y``. Since the infinity norm amounts to the dc-link, it is natural to minimize this quantity.
 
-We saved several possible configurations in the ``get_a`` function. The selected matrix describes a fault-tolerant system with four phases. We load the matrix.
+We create the matrix ``A`` as a fault-tolerant system with four phases.
 
 ```
-A = get_a(6);
+A1 = 2/3*[1, cos(2/3*pi), cos(-2/3*pi); ...
+    0, sin(2/3*pi), sin(-2/3*pi); ...
+    1/2, 1/2, 1/2];
+A2 = [1, 0, 0, -1;...
+    0, 1, 0, -1;...
+    0, 0, 1, -1];
+    
+A = A1*A2;
 [m, n] = size(A);
 ```
 
