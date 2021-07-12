@@ -19,8 +19,9 @@ function [x, val] = solve_linprog(A, y)
     b_eq   = y;
     lb     = [];
     ub     = [];
+    opts   = optimoptions('linprog', 'Display', 'off');
     
-    [xz, val] = linprog(c, A_ineq, b_ineq, A_eq, b_eq, lb, ub);
+    [xz, val] = linprog(c, A_ineq, b_ineq, A_eq, b_eq, lb, ub, opts);
     x = xz(1:n);
 end
 
