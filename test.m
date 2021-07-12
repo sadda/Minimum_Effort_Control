@@ -1,3 +1,5 @@
+% Testing function comparing our solution with the solution computed by linprog.
+
 clear all;
 close all;
 

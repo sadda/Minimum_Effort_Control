@@ -1,3 +1,7 @@
+% Example of usage. See the GitHub readme for more comments.
+%
+% https://github.com/sadda/Motors_Linear
+
 clear all;
 close all;
 

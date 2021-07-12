@@ -1,4 +1,11 @@
 function A = get_a(A_type)
+    % get_a contains stored matrices A.
+    % 
+    % Inputs:
+    % A_type (scalar): specifies the saved instance number.
+    %
+    % Outputs:
+    % A (matrix): stored matrix A.
     
     phi3 = 2/3*pi;
     phi5 = 2/5*pi;

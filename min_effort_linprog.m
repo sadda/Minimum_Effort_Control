@@ -1,13 +1,17 @@
 function [x, val] = min_effort_linprog(A, y)
-    
-    % mnmz ||x||_infty
-    % s.t. Ax = y
-    
-    % Primal problem (equivalent)
-    % mnmz z
-    % s.t. Ax = y
-    %      z  >= x_i
-    %      z  >= -x_i
+    % min_effort_linprog Slow method for solving the minimum effort problem
+    %    minimize     ||x||_infty
+    %    subject to   Ax = y
+    % Use min_effort instead.
+    %
+    % Inputs:
+    % A (matrix): matrix A from above.
+    % y (vector): vector y from above.
+    % U (matrix): set of extremal points of the dual problem computed by get_u(A).
+    %
+    % Outputs:
+    % x (vector): optimal solution of the above problem.
+    % val (scalar): optimal value of the above problem.
     
     [m, n] = size(A);
     
