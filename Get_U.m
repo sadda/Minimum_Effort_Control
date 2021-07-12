@@ -1,4 +1,4 @@
-function corners = Get_U(A)
+function corners = get_u(A)
     
     [m, n] = size(A);
     
@@ -75,7 +75,7 @@ function U = convhulln_error(U)
                 else
                     remove(j1) = true;
                 end
-            end            
+            end
         end
     end
     
