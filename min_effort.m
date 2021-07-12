@@ -1,4 +1,4 @@
-function [x, val] = solve_ours(A, y, U)
+function [x, val] = min_effort(A, y, U)
     
     % mnmz ||x||_infty
     % s.t. Ax = y

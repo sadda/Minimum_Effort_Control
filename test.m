@@ -38,8 +38,8 @@ for A_type = 1:7
     xs1 = zeros(n,N);
     xs2 = zeros(n,N);
     for k = 1:N
-        xs1(:,k) = solve_ours(A, ys(:,k), U);
-        xs2(:,k) = solve_linprog(A, ys(:,k));
+        xs1(:,k) = min_effort(A, ys(:,k), U);
+        xs2(:,k) = min_effort_linprog(A, ys(:,k));
     end
     
     %% Check for equality

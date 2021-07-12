@@ -1,4 +1,4 @@
-function [x, val] = solve_linprog(A, y)
+function [x, val] = min_effort_linprog(A, y)
     
     % mnmz ||x||_infty
     % s.t. Ax = y

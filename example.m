@@ -34,10 +34,10 @@ U = get_u(A);
 
 xs1 = zeros(n,N);
 for k = 1:N
-    xs1(:,k) = solve_ours(A, ys(:,k), U);
+    xs1(:,k) = min_effort(A, ys(:,k), U);
 end
 
-%% Output: Get a solution for every time
+%% Output: Get the standard solution
 
 xs2 = zeros(n,N);
 for k = 1:N
