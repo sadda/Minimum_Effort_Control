@@ -32,21 +32,43 @@ U = get_u(A);
 
 %% Output: Get a solution for every time
 
-xs = zeros(n,N);
+xs1 = zeros(n,N);
 for k = 1:N
-    xs(:,k) = solve_ours(A, ys(:,k), U);
+    xs1(:,k) = solve_ours(A, ys(:,k), U);
+end
+
+%% Output: Get a solution for every time
+
+xs2 = zeros(n,N);
+for k = 1:N
+    xs2(:,k) = A'*((A*A') \ ys(:,k));
 end
 
 %% Output: Plot the results
+
+ylims = [min([xs1(:); xs2(:)]); max([xs1(:); xs2(:)])];
 
 figure();
 plot(ts, ys');
 grid on;
 xlabel('Time');
-title('Required voltage');
+ylabel('Required voltage');
+print(gcf, 'res1.png', '-dpng', '-r600');
 
 figure();
-plot(ts, xs');
+plot(ts, xs1');
 grid on;
 xlabel('Time');
-title('Input voltage');
+ylabel('Required voltage');
+title('Our approach');
+ylim(ylims);
+print(gcf, 'res2.png', '-dpng', '-r600');
+
+figure();
+plot(ts, xs2');
+grid on;
+xlabel('Time');
+ylabel('Required voltage');
+title('Standard approach');
+ylim(ylims);
+print(gcf, 'res3.png', '-dpng', '-r600');
