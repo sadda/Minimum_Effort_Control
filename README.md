@@ -10,13 +10,13 @@ The problem above can be written as a linear optimization problem. The theory of
 
 ## Application to multi-phase converters
 
-Multi-phase converters can be written as a linear system. The goal is to compute the leg voltage values stored in the unknown vector ``x`` for the required output voltage vector stored in ``y`` ( ``y(1)`` = Valpha,  ``y(2)`` = Vbeta, where Valpha and Vbeta are the components of the required voltage space vector in the stationary reference frame (see Fig. 1 for unit circle trajectory of  ``V_\alpha`` ).
+Multi-phase converters can be written as a linear system. The goal is to compute the leg voltage values stored in the unknown vector ``x`` for the required output voltage vector stored in ``y`` ( ``y(1)`` = Valpha,  ``y(2)`` = Vbeta, where Valpha and Vbeta are the components of the required voltage space vector in the stationary reference frame (see Fig. 1 for unit circle trajectory of  V_alpha_beta ).
 
 <img src="Figures/standard5ph_Vafbt.png" width="500">
 
 Since the infinity norm of x directly affects the minimum dc-link voltage needed, it is natural to minimize this quantity.
 
-We create the matrix ``A`` based on the Clarke's transform for five-phase systems with degrees of freedom imposed on Vxy and V0 (by omitting 3rd, 4th and 5th row).
+We create the matrix ``A`` based on the Clarke's transform for five-phase systems with degrees of freedom imposed on Vxy (voltage vector in x-y plane) and V0 (zero-sequence component), by omitting 3rd, 4th and 5th row of the matrix.
 
 ```
 A = 2/3*[1, cos(2/3*pi), cos(4/3*pi), cos(-4/3*pi), cos(-2/3*pi);...
