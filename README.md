@@ -56,5 +56,8 @@ We compare our result with the standard method minimizing the l2 norm. We depict
 
 <img src="Figures/Standard5ph_x_opt.png" width="500"><img src="Figures/StandardMode5ph_x0.png" width="500">
 
+The trajectory of the final output voltage vector in the alpha-beta (blue) and x-y (orange) plane is depicted below. The orange curve show the exploitation of degrees of freedom imposed on the Vxy.
 
+
+<img src="Figures/standard5ph_x_opt_AfBtXY.png" width="500">
 
