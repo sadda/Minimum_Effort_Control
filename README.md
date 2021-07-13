@@ -52,7 +52,7 @@ for k = 1:N
 end
 ```
 
-We compare our result with the standard method minimizing the l2 norm. We depict both results next to each other with the same y axis. Our approach leads to 18% smaller dc-link, which means significant energy savings.
+We compare our result with the standard method minimizing the l2 norm. We depict both results next to each other with the same y axis. Our approach leads to 18.7% lower dc-link voltage, which means significant costs savings.
 
 <img src="Figures/Standard5ph_x_opt.png" width="500"><img src="Figures/StandardMode5ph_x0.png" width="500">
 
