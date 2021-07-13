@@ -10,7 +10,7 @@ The problem above can be written as a linear optimization problem. The theory of
 
 ## Application to multi-phase converters
 
-Multi-phase converters can be written as a linear system. The goal is to compute the leg voltage values stored in the unknown vector ``x`` for the required output voltage vector stored in ``y`` (''y(1)'' = Valpha, ''y(2)'' = Vbeta, where Valpha and Vbeta are the components of the required voltage space vector in the stationary reference frame (see Fig. 1 for unit circle trajectory of ''Vafbt'').
+Multi-phase converters can be written as a linear system. The goal is to compute the leg voltage values stored in the unknown vector ``x`` for the required output voltage vector stored in ``y`` ( ``y(1)`` = Valpha,  ``y(2)`` = Vbeta, where Valpha and Vbeta are the components of the required voltage space vector in the stationary reference frame (see Fig. 1 for unit circle trajectory of  ``V_\alpha`` ).
 
 <img src="Figures/standard5ph_Vafbt.png" width="500">
 
