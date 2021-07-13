@@ -1,4 +1,4 @@
-# Linear systems with the smallest infinity norm
+# Linear systems with the minimum infinity norm
 
 This repo contains Matlab codes for finding the solution of the linear system ``Ax = y`` with the smallest infinity norm. Due to splitting the computation to online and offline phases, our algorithm is suited for repeated computations of this system with the same matrix ``A`` but different right-hand side ``y``. See more detailed information in our paper.
 
@@ -10,9 +10,9 @@ The problem above can be written as a linear optimization problem. The theory of
 
 ## Application to multi-phase converters
 
-Multi-phase converters can be written as a linear system. The goal is to compute the input voltage ``x`` for the required output voltage ``y``. Since the infinity norm amounts to the dc-link, it is natural to minimize this quantity.
+Multi-phase converters can be written as a linear system. The goal is to compute the leg voltage values stored in the unknown vector ``x`` for the required output voltage vector stored in ``y`` (y1 = Valpha, y2 = Vbeta, where Valpha and Vbeta are the components of the required voltage space vector in the stationary reference frame. Since the infinity norm of x directly affects the minimum dc-link voltage needed, it is natural to minimize this quantity.
 
-We create the matrix ``A`` as a fault-tolerant system with four phases.
+We create the matrix ``A`` based on the Clarke's transform for five-phase systems with degrees of freedom imposed on Vxy and V0 (by omitting 3rd, 4th and 5th row).
 
 ```
 A1 = 2/3*[1, cos(2/3*pi), cos(-2/3*pi); ...
@@ -21,8 +21,8 @@ A1 = 2/3*[1, cos(2/3*pi), cos(-2/3*pi); ...
 A2 = [1, 0, 0, -1;...
     0, 1, 0, -1;...
     0, 0, 1, -1];
-    
-A = A1*A2;
+A = 2/3*[1, cos(2/3*pi), cos(4/3*pi), cos(-4/3*pi), cos(-2/3*pi);...
+         0, sin(2/3*pi), sin(4/3*pi), sin(-4/3*pi), sin(-2/3*pi)];    
 [m, n] = size(A);
 ```
 
@@ -35,7 +35,7 @@ N = length(ts);
 ys = zeros(m,N);
 for k = 1:N
     wt = 2*pi*50*ts(k);
-    ys(:,k) = 230*sqrt(2)*[cos(wt); sin(wt); -0.4*cos(wt)];
+    ys(:,k) = 230*sqrt(2)*[cos(wt); sin(wt)];
 end
 ```
 
