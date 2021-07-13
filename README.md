@@ -37,8 +37,6 @@ for k = 1:N
 end
 ```
 
-<img src="Figures/res1.png" width="500">
-
 The offline phase precomputes the matrix ``U``. It has only 10 elements, which means that the dual problem can be solved in 10 dot products. Our basic Matlab implementation needs only 0.05ms for one solution on a laptop.
 
 ```
