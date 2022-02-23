@@ -1,4 +1,4 @@
-function corners = get_u(A)
+function corners = get_u(A1, A2)
     % get_u computes the set of extremal points of the dual feasible set ||A'*u|| <= 1.
     %
     % Inputs:
@@ -7,11 +7,15 @@ function corners = get_u(A)
     % Outputs:
     % U (matrix): extremal points of the dual feasible set.
     
-    [m, n] = size(A);
+    [m1, n] = size(A1);
+    if nargin < 2 || isempty(A2)
+        A2 = zeros(0, n);
+    end
+    m2 = size(A2, 1);
     
-    % Constraints in the enhanced space B*[u^+ u^- z^+ z^- w] = b
-    B = [A' -A' -eye(n) eye(n) zeros(n,1); ...
-        zeros(1,m) zeros(1,m) ones(1,n) ones(1,n) 1];
+    % Constraints in the enhanced space B*[u1^+ u1^- u2tilde z^+ z^-] = b
+    B = [A1' -A1' -A2' -eye(n) eye(n); ...
+        zeros(1,m1) zeros(1,m1) zeros(1,m2) ones(1,n) ones(1,n)];
     b = [zeros(n,1); 1];
     
     % Generate all indices to select square submatrices of B
@@ -24,7 +28,7 @@ function corners = get_u(A)
     end
     
     % Reduce the extremal points to the original space
-    corners = corners_ext(1:m,:) - corners_ext(m+1:2*m,:);
+    corners = [corners_ext(1:m1,:) - corners_ext(m1+1:2*m1,:); -corners_ext(2*m1+1:2*m1+m2,:)];
     
     % Remove duplicities
     corners = unique(corners', 'rows')';
@@ -36,6 +40,12 @@ function corners = get_u(A)
     
     % This is used only for numerical errors
     corners = convhulln_error(corners);
+    
+    % Feasibility check for ||A'*u|| = 1
+    tol = 1e-10;
+    if max(abs(sum(abs([A1; A2]'*corners')) - 1)) >= tol
+        error('Solutions do not have norm 1');
+    end
 end
 
 

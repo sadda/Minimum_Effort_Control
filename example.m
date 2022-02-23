@@ -7,9 +7,17 @@ close all;
 
 %% Input: Clarke's transform A
 
-A_type = 6;
+A_type = 3;
 A = get_a(A_type);
+
+i1 = [1 2];
+i2 = [3 4];
+A1 = A(i1,:);
+A2 = [A(i2,:); -A(i2,:)];
+
+A = [A1; A2];
 [m, n] = size(A);
+
 
 %% Input: Required voltage y
 
@@ -25,20 +33,24 @@ for k = 1:N
     
     ys(1,k) = Um*cos(wt);
     ys(2,k) = Um*sin(wt);
-    if A_type == 6
-        ys(3,k) = -0.4*Um*cos(wt);
-    end
+%     if A_type == 6
+%         ys(3,k) = -0.4*Um*cos(wt);
+%     end
+    ys(3,k) = 0.1+abs(0.1*Um*cos(wt));
+    ys(4,k) = 0.1+abs(0.1*Um*sin(wt));
+    ys(5,k) = ys(3,k);
+    ys(6,k) = ys(4,k);
 end
 
 %% Output: Precompute set U
 
-U = get_u(A);
+U = get_u(A1, A2);
 
 %% Output: Get a solution for every time
 
 xs1 = zeros(n,N);
 for k = 1:N
-    xs1(:,k) = min_effort(A, ys(:,k), U);
+    xs1(:,k) = min_effort(A1, A2, ys(:,k), U);
 end
 
 %% Output: Get the standard solution
@@ -57,7 +69,7 @@ plot(ts, ys');
 grid on;
 xlabel('Time');
 ylabel('Required voltage');
-print(gcf, 'res1.png', '-dpng', '-r600');
+% print(gcf, 'res1.png', '-dpng', '-r600');
 
 figure();
 plot(ts, xs1');
@@ -66,7 +78,7 @@ xlabel('Time');
 ylabel('Input voltage');
 title('Our approach');
 ylim(ylims);
-print(gcf, 'res2.png', '-dpng', '-r600');
+% print(gcf, 'res2.png', '-dpng', '-r600');
 
 figure();
 plot(ts, xs2');
@@ -75,4 +87,13 @@ xlabel('Time');
 ylabel('Input voltage');
 title('Standard approach');
 ylim(ylims);
-print(gcf, 'res3.png', '-dpng', '-r600');
+% print(gcf, 'res3.png', '-dpng', '-r600');
+
+
+figure();
+plot(ts, (A1*xs1)');
+
+
+figure();
+plot(ts, (A2(1:2,:)*xs1)');
+
