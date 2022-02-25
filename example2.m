@@ -42,7 +42,7 @@ omega = 2*pi*50;
 Um = 230*sqrt(2);
 
 for kappa = kappa_all
-    ys = zeros(m,N);
+    ys = zeros(m,N);        
     for k = 1:N
         wt = omega*ts(k);
         
@@ -106,10 +106,27 @@ for kappa = kappa_all
             if c_max <= c_min - tol
                 error('Something wrong');
             end
-            c = 0.5*(c_min + c_max);
             
-            %target = 0; %choose anything between 0 and y(3)
-            %c = (target - A(3,I1|I2)*x(I1|I2) - A(3,I0)*t_p) / (A(3,I0)*t_d);
+            xs_a = x;
+            xs_a(I0) = t_p + c_min*t_d;
+            xs_b = x;
+            xs_b(I0) = t_p + c_max*t_d;
+            
+            norm_a = norm(A([3 4],:)*xs_a);
+            norm_b = norm(A([3 4],:)*xs_b);
+                        
+            if norm(norm_a) > norm(norm_b) + tol
+                c = c_min;
+            elseif norm(norm_b) > norm(norm_a) + tol
+                c = c_max;
+            elseif k > 1 && norm(xs_a - xs(:,k-1)) <= norm(xs_b - xs(:,k-1)) - tol
+                c = c_min;
+            elseif k > 1 && norm(xs_b - xs(:,k-1)) <= norm(xs_a - xs(:,k-1)) - tol
+                c = c_max;
+            else
+                c = 0.5*(c_min+c_max);
+            end
+            
             x(I0) = t_p + c*t_d;
         else
             x(I0) = A(J,I0) \ (y(J) - A(J,I1|I2)*x(I1|I2));
