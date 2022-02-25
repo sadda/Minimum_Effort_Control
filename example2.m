@@ -7,7 +7,6 @@ close all;
 
 %% Settings
 
-box = false;
 plot_figure = true;
 kappa_all = linspace(0.9, 0.01, 90);
 omega_coef = 3;
@@ -42,19 +41,14 @@ omega = 2*pi*50;
 Um = 230*sqrt(2);
 
 for kappa = kappa_all
-    ys = zeros(m,N);        
+    ys = zeros(m,N);
     for k = 1:N
         wt = omega*ts(k);
         
         ys(1,k) = Um*cos(wt);
         ys(2,k) = Um*sin(wt);
-        if box
-            ys(3,k) = kappa*Um;
-            ys(4,k) = kappa*Um;
-        else
-            ys(3,k) = abs(kappa*Um*cos(omega_coef*wt+angle));
-            ys(4,k) = abs(kappa*Um*sin(omega_coef*wt+angle));
-        end
+        ys(3,k) = abs(kappa*Um*cos(omega_coef*wt+angle));
+        ys(4,k) = abs(kappa*Um*sin(omega_coef*wt+angle));
         ys(5,k) = ys(3,k);
         ys(6,k) = ys(4,k);
     end
@@ -114,7 +108,7 @@ for kappa = kappa_all
             
             norm_a = norm(A([3 4],:)*xs_a);
             norm_b = norm(A([3 4],:)*xs_b);
-                        
+            
             if norm(norm_a) > norm(norm_b) + tol
                 c = c_min;
             elseif norm(norm_b) > norm(norm_a) + tol
@@ -164,11 +158,7 @@ for kappa = kappa_all
         hold on;
         plot((A1(1,:)*xs)', (A1(2,:)*xs)');
         plot((A2(1,:)*xs)', (A2(2,:)*xs)');
-        if box
-            plot([-Um*kappa; Um*kappa; Um*kappa; -Um*kappa; -Um*kappa], [-Um*kappa; -Um*kappa; Um*kappa; Um*kappa; -Um*kappa], 'k--')
-        else
-            plot(Um*kappa*cos(disc), Um*kappa*sin(disc), 'k--');
-        end
+        plot(Um*kappa*cos(disc), Um*kappa*sin(disc), 'k--');
         xlim(y_lim);
         ylim(y_lim);
         title('B*xs');
