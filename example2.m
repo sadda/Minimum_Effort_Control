@@ -68,7 +68,7 @@ if plot_figure
         y_lim = [-400 400];
         h = plot_figures(ts, xs(:,:,i), A1, A2, Um, y_lim, kappas(i));
         
-        filename = 'Result.gif';
+        filename = 'figures/kappa.gif';
         frame = getframe(h);
         im = frame2im(frame);
         [imind,cm] = rgb2ind(im,256);
