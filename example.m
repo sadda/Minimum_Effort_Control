@@ -31,6 +31,7 @@ A = [A1; A2];
 %% Output: Precompute set U
 
 U = get_u(A1, A2);
+% U = get_u([A1; A2(1:2,:)]);
 
 %% Input: Required voltage y
 
@@ -48,8 +49,10 @@ for kappa = kappa_all
         
         ys(1,k) = Um*cos(wt);
         ys(2,k) = Um*sin(wt);
-        ys(3,k) = abs(kappa*Um*cos(omega_coef*wt));
-        ys(4,k) = abs(kappa*Um*sin(omega_coef*wt));
+%         ys(3,k) = abs(kappa*Um*cos(omega_coef*wt));
+%         ys(4,k) = abs(kappa*Um*sin(omega_coef*wt));
+ys(3,k) = kappa*Um;
+ys(4,k) = kappa*Um;
         ys(5,k) = ys(3,k);
         ys(6,k) = ys(4,k);
     end
@@ -59,6 +62,7 @@ for kappa = kappa_all
     xs = zeros(n,N);
     for k = 1:N
         xs(:,k) = min_effort(A1, A2, ys(:,k), U);
+%         xs(:,k) = min_effort([A1; A2(1:2,:)], [], ys(1:4,k), U);
     end
     
     if plot_figure
