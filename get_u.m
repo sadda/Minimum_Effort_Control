@@ -1,5 +1,6 @@
-function corners = get_u(A1, A2)
-    % get_u computes the set of extremal points of the dual feasible set ||A'*u|| <= 1.
+function U = get_u(A, B)
+    % get_u Computes the set of extremal points of the dual feasible set
+    %    ||A'*u + B'*v|| <= 1, v <= 0.
     %
     % Inputs:
     % A (matrix): matrix A specifying the problem.
@@ -7,59 +8,59 @@ function corners = get_u(A1, A2)
     % Outputs:
     % U (matrix): extremal points of the dual feasible set.
     
-    [m1, n] = size(A1);
-    if nargin < 2 || isempty(A2)
-        A2 = zeros(0, n);
+    [m1, n] = size(A);
+    if nargin < 2 || isempty(B)
+        B = zeros(0, n);
     end
-    m2 = size(A2, 1);
+    m2 = size(B, 1);
     
     % Constraints in the enhanced space B*[u1^+ u1^- u2tilde z^+ z^-] = b
-    B = [A1' -A1' -A2' -eye(n) eye(n); ...
+    C = [A' -A' -B' -eye(n) eye(n); ...
         zeros(1,m1) zeros(1,m1) zeros(1,m2) ones(1,n) ones(1,n)];
-    b = [zeros(n,1); 1];
+    c = [zeros(n,1); 1];
     
     % Generate all indices to select square submatrices of B
-    iis = nchoosek(1:size(B,2),size(B,1));
+    iis = nchoosek(1:size(C,2),size(C,1));
     
     % Run over all submatrices and get the extremal points in the enhanced space
-    corners_ext = [];
+    U_ext = [];
     for i = 1:size(iis,1)
-        corners_ext = [corners_ext, Get_Corner(B, b, iis(i,:))];
+        U_ext = [U_ext, Get_Corner(C, c, iis(i,:))];
     end
     
     % Reduce the extremal points to the original space
-    corners = [corners_ext(1:m1,:) - corners_ext(m1+1:2*m1,:); -corners_ext(2*m1+1:2*m1+m2,:)];
+    U = [U_ext(1:m1,:) - U_ext(m1+1:2*m1,:); -U_ext(2*m1+1:2*m1+m2,:)];
     
     % Remove duplicities
-    corners = unique(corners', 'rows')';
+    U = unique(U', 'rows')';
     
     % Remove points which are not extremal in the original space
-    ii = convhulln(corners');
+    ii = convhulln(U');
     ii = unique(ii(:));
-    corners = corners(:,ii)';
+    U = U(:,ii)';
     
     % This is used only for numerical errors
-    corners = convhulln_error(corners);
+    U = convhulln_error(U);
     
     % Feasibility check for ||A'*u|| = 1
     tol = 1e-10;
-    if max(abs(sum(abs([A1; A2]'*corners')) - 1)) >= tol
+    if max(abs(sum(abs([A; B]'*U')) - 1)) >= tol
         error('Solutions do not have norm 1');
     end
 end
 
 
-function u = Get_Corner(B, b, ii)
+function u = Get_Corner(C, c, ii)
     % Get_Corner computes the extremal set of the set Bv = b, v >= 0.
     
     tol = 1e-10;
     u = [];
-    B_red = B(:,ii);
+    B_red = C(:,ii);
     if rank(B_red) == size(B_red,1)
-        u_red = B_red \ b;
+        u_red = B_red \ c;
         if min(u_red) >= -tol
             u_red(u_red <= tol) = 0;
-            u = zeros(size(B,2),1);
+            u = zeros(size(C,2),1);
             u(ii) = u_red;
         end
     end
