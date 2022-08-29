@@ -58,4 +58,9 @@ We compare our result with the standard method minimizing the l2 norm. We depict
 
 <img src="figures/res2.png" width="500"><img src="figures/res3.png" width="500">
 
+## Application to multi-phase converters 2
+
+Instead of completely omitting the 3rd and 4th rows of the matrix, we can consider them. When we put them into a matrix ``B = A([3 4, :])``, we may prescribe the maximum norm ``norm(B*x) <= kappa*U_max``. When we increase ``kappa``, the input voltage ``x`` decreases but some additional properties such as THD may increase. Therefore, ``kappa`` may be understood as a tuning parameter to be determined according to the needs of the user. The following animation shows how the system behaves when ``kappa`` is decreased.
+
+<img src="figures/kappa.gif" width="1100">
 
