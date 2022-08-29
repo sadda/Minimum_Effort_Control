@@ -8,9 +8,7 @@ close all;
 %% Settings
 
 plot_figure = true;
-% kappas = linspace(0.9, 0.01, 90);
-kappas = linspace(0.5, 0.02, 30);
-omega_coef = 3;
+kappas = linspace(0.4, 0.01, 40);
 
 %% Input: Clarke's transform A
 
@@ -43,10 +41,8 @@ for i = 1:length(kappas)
         
         ys(1,k,i) = Um*cos(wt);
         ys(2,k,i) = Um*sin(wt);
-        %         ys(3,k,i) = abs(kappas(i)*Um*cos(omega_coef*wt));
-        %         ys(4,k,i) = abs(kappas(i)*Um*sin(omega_coef*wt));
-        ys(3,k,i) = kappas(i)*Um;
-        ys(4,k,i) = kappas(i)*Um;
+        ys(3,k,i) = abs(kappas(i)*Um*cos(3*wt));
+        ys(4,k,i) = abs(kappas(i)*Um*sin(3*wt));
         ys(5,k,i) = ys(3,k,i);
         ys(6,k,i) = ys(4,k,i);
     end
@@ -55,7 +51,6 @@ end
 %% Output: Precompute set U
 
 U = get_u(A1, A2);
-% U = get_u([A1; A2(1:2,:)]);
 
 %% Output: Get a solution for every time
 
@@ -63,7 +58,6 @@ xs = zeros(n_x, n_t, n_k);
 for i = 1:length(kappas)
     for k = 1:n_t
         xs(:,k,i) = min_effort(A1, A2, ys(:,k,i), U);
-        %         xs(:,k,i) = min_effort([A1; A2(1:2,:)], [], ys(1:4,k), U);
     end
 end
 
