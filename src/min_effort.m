@@ -1,4 +1,4 @@
-function [x, optimal_value] = min_effort(A, y, U, find_x)
+function [x, optimal_value, s] = min_effort(A, y, U, find_x, s)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
     %    subject to   A * x = y1
@@ -7,7 +7,8 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
     % A (matrix): matrix A from above.
     % y (vector): vector y from above.
     % U (matrix): set of extremal points of the dual problem computed by get_u(A, B).
-    % find_x (function, optional): upon calling find_x(D, d, I0) solves
+    % find_x (function, optional): upon calling find_x(D, d, I0) solves.
+    % s (struct, optional): used for monitoring where the solution is computed.
     %       the minimum effort problem D * x_out = d. Even though
     %       this procedure should handle any case, it may used to handle
     %       problematic cases in a fast way.
@@ -17,9 +18,12 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
     % optimal_value (scalar): optimal value of the above problem.
 
     % Specify find_x if not provided
-    if nargin < 4
-        find_x = @(varargin) [];
+    if nargin < 5
+        s = [];
     end
+    if nargin < 4 || isequal(find_x, [])
+        find_x = @(varargin) [];
+    end    
 
     tol = 1e-10;
     [m, n] = size(A);
@@ -48,9 +52,11 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
+        s = solution_part(s, I0, 'user-specified');
     elseif rank_D == n
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
+        s = solution_part(s, I0, 'well-conditioned');
     else
         % Remove zero columns
         D(:, sum(abs(D),1) == 0) = [];
@@ -64,6 +70,7 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
             if m+1 == n
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
+                s = solution_part(s, I0, 'n*(n+1) system');
             else
                 % Find columns which are multiples of each other
                 [multiples, multiples_counts] = find_column_multiples(D);
@@ -85,12 +92,16 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
                         x0(multiples(k,2)) = x0(multiples(k,1)) * sign(multiples(k,3));
                     end
                     x(I0) = x0;
+                    s = solution_part(s, I0, 'n*(n+1) system modified');
                 else
                     U_D = get_u(D);
                     x(I0) = min_effort(D, d, U_D);
+                    s = solution_part(s, I0, 'get_u');
                 end
             end
-        end
+        else
+            s = solution_part(s, I0, 'l2 with reduced');
+        end        
     end
 
     % Check for solution optimality
@@ -126,5 +137,28 @@ function [multiples, multiples_counts] = find_column_multiples(A)
         multiples_sum(i) = sum(abs(multiples(multiples(:,1)==multiples_unique(i),3))) + 1;
     end
     multiples_counts = [multiples_unique, multiples_sum];
+end
+
+function s = solution_part(s, I0, text)
+    if isequal(s, [])
+        s = add_field(s, I0, text);
+    else
+        found = false;
+        for i = 1:length(s)
+            if isequal(s(i).I0, I0) && isequal(s(i).text, text)
+                found = true;
+                break
+            end
+        end
+        if found
+            s(i).count = s(i).count + 1;
+        else
+            s = add_field(s, I0, text);
+        end
+    end
+end
+
+function s = add_field(s, I0, text)
+    s = [s; struct('I0', I0, 'text', text, 'count', 1)];
 end
 
