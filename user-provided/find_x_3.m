@@ -13,7 +13,7 @@ function x = find_x_3(D, d, I0)
         d = d(1:2);
         D_pse = D'*inv(D*D');
         x = D_pse * d;
-        x1 = optimal_x(x, [1;1;2]);
+        x1 = solution_min_norm(x, [1;1;2]);
         x = [-x1(1); -x1(2); x1(1); x1(2); x1(3)];
     elseif isequal(I0, logical([1;1;1;0;1;0;1;0;0]))
         D(:, [1, 2]) = 2*D(:, [1, 2]);
@@ -21,7 +21,7 @@ function x = find_x_3(D, d, I0)
         d = d(1:2);
         D_pse = D'*inv(D*D');
         x = D_pse * d;
-        x1 = optimal_x(x, [1;1;2]);
+        x1 = solution_min_norm(x, [1;1;2]);
         x = [x1(1); x1(2); x1(3); -x1(1); -x1(2)];
     elseif isequal(I0, logical([1;0;0;1;1;1;0;1;0]))
         % Goes into the l2 solution which is fine here
@@ -36,27 +36,3 @@ function x = find_x_3(D, d, I0)
     end
 end
 
-function x_opt = optimal_x(x0, d)
-    n = length(d);
-    val_opt = inf;
-    for i=1:n
-        for j=i+1:n
-            if d(i) ~= d(j)
-                s = (x0(j) - x0(i)) / (d(i) - d(j));
-                val = max(abs(x0 + s*d));
-                if val < val_opt
-                    val_opt = val;
-                    x_opt = x0 + s*d;
-                end
-            end
-            if d(i) ~= -d(j)
-                s = -(x0(j) + x0(i)) / (d(i) + d(j));
-                val = max(abs(x0 + s*d));
-                if val < val_opt
-                    val_opt = val;
-                    x_opt = x0 + s*d;
-                end
-            end
-        end
-    end
-end
