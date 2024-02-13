@@ -1,6 +1,8 @@
 clear all;
 close all;
 
+addpath("src")
+
 %% Input: Clarke's transform A
 
 A = 2/5*[1, cos(2/5*pi), cos(4/5*pi), cos(-4/5*pi), cos(-2/5*pi);...

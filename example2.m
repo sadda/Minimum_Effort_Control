@@ -5,6 +5,8 @@
 clear all;
 close all;
 
+addpath("src")
+
 %% Settings
 
 plot_figure = true;
