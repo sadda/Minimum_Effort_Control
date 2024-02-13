@@ -1,54 +1,49 @@
-function [x, optimal_value] = min_effort_inequalities(A, B, y, U, find_x)
+function [x, optimal_value] = min_effort(A, y, U, find_x)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
     %    subject to   A * x = y1
-    %                 B * x <= y2
     %
     % Inputs:
     % A (matrix): matrix A from above.
-    % B (matrix): matrix B from above.
     % y (vector): vector y from above.
     % U (matrix): set of extremal points of the dual problem computed by get_u(A, B).
-    % find_x (function, optional): upon calling find_x(A_big, y, I0, J, x) solves
-    %       the minimum effort problem A_big(J, I0) * x_out = y(J)
-    %       which satisfied all hte conditions.
+    % find_x (function, optional): upon calling find_x(D, d, I0) solves
+    %       the minimum effort problem D * x_out = d. Even though
+    %       this procedure should handle any case, it may used to handle
+    %       problematic cases in a fast way.
     %
     % Outputs:
     % x (vector): optimal solution of the above problem.
     % optimal_value (scalar): optimal value of the above problem.
 
     % Specify find_x if not provided
-    if nargin < 5
+    if nargin < 4
         find_x = @(varargin) [];
     end
 
     tol = 1e-10;
-    A_big = [A; B];
-    m1 = size(A, 1);
-    m2 = size(B, 1);
-    n = size(A_big, 2);
+    n = size(A, 2);
 
     % Compute the optimal dual solution
     [optimal_value, i_max] = max(U*y);
     u_opt = U(i_max, :)';
 
     % Assign the index sets for complementarity
-    I0 = abs(A_big'*u_opt) <= tol;
-    I1 = A_big'*u_opt > tol;
-    I2 = A_big'*u_opt < -tol;
-    J = [true(m1, 1); u_opt(m1+1:m1+m2) < -tol];
+    I0 = abs(A'*u_opt) <= tol;
+    I1 = A'*u_opt > tol;
+    I2 = A'*u_opt < -tol;
 
     % Use the complementarity conditions to compute the primal solution
     x = zeros(n,1);
     x(I1) = optimal_value;
     x(I2) = -optimal_value;
 
-    D = A_big(J,I0);
-    d = y(J) - A_big(J,I1|I2)*x(I1|I2);
+    D = A(:,I0);
+    d = y - A(:,I1|I2)*x(I1|I2);
 
     % We need to solve the following equation for x(I0)
     % D * x(I0) = d;
-    x_user = find_x(A_big, y, I0, J, x);
+    x_user = find_x(D, d, I0);
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
@@ -65,7 +60,7 @@ function [x, optimal_value] = min_effort_inequalities(A, B, y, U, find_x)
     end
 
     % Check for solution optimality
-    if norm(A*x-y(1:m1)) > tol || (m2 > 0 && norm(max(B*x - y(m1+1:m1+m2), 0)) > tol)
+    if norm(A*x-y) > tol
         throw("Problem was not solved");
     end
     if max(abs(x)) > optimal_value + tol
