@@ -22,7 +22,7 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
     end
 
     tol = 1e-10;
-    n = size(A, 2);
+    [m, n] = size(A);
 
     % Compute the optimal dual solution
     [optimal_value, i_max] = max(U*y);
@@ -43,20 +43,54 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
 
     % We need to solve the following equation for x(I0)
     % D * x(I0) = d;
+    rank_D = rank(D);
     x_user = find_x(D, d, I0);
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
-    elseif cond(D'*D) <= 1e10
+    elseif rank_D == n
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
     else
-        % For the general case, we compute the l2 minimal solution.
-        % This does not need to be optimal.
-        [~, basiccol] = rref(D');
-        D = D(basiccol,:);
-        d = d(basiccol);
+        % Remove zero columns
+        D(:, sum(abs(D),1) == 0) = [];
+        % Reduce the system to the necessary equations only. Rank of D is still m.
+        D = D(1:rank_D,:);
+        d = d(1:rank_D);
+        [m, n] = size(D);
+        % Try l2 solution with reduced ranks
         x(I0) = D' * ((D * D') \ d);
+        if max(abs(x)) > optimal_value + tol
+            if m+1 == n
+                % Solve n*(n+1) system
+                x(I0) = solve_n_n_plus_one(D, d);
+            else
+                % Find columns which are multiples of each other
+                [multiples, multiples_counts] = find_column_multiples(D);
+                % Multiply the columns which are multiplied
+                D_modified = D;
+                for i = 1:size(multiples_counts,1)
+                    k = multiples_counts(i, 1);
+                    D_modified(:,k) = D_modified(:,k) * multiples_counts(i, 2);
+                end
+                % Remove columns which are multiples
+                D_modified(:, multiples(:,2)) = [];
+
+                if size(D_modified,1) + 1 == size(D_modified,2)
+                    % Solve the n*(n+1) system
+                    x0 = zeros(sum(I0),1);
+                    x0(setdiff(1:length(x0), multiples(:,2))) = solve_n_n_plus_one(D_modified, d);
+                    % Distribute the values into the multiples columns
+                    for k = 1:size(multiples,1)
+                        x0(multiples(k,2)) = x0(multiples(k,1)) * sign(multiples(k,3));
+                    end
+                    x(I0) = x0;
+                else
+                    U_D = get_u(D);
+                    x(I0) = min_effort(D, d, U_D);
+                end
+            end
+        end
     end
 
     % Check for solution optimality
@@ -66,5 +100,45 @@ function [x, optimal_value] = min_effort(A, y, U, find_x)
     if max(abs(x)) > optimal_value + tol
         warning("COMPUTATIONS FAILED. SOLUTION IS SOBOPTIMAL.");
     end
+end
+
+
+
+function x = solve_n_n_plus_one(A, b)
+    [m, n] = size(A);
+    rank_A = rank(A);
+    assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
+    assert(rank_A == m, "Matrix A must have rank m.");
+
+    % Find the kernel and a particular solution
+    d = null(A);
+    x0 = A \ b;
+
+    % Find the solution
+    x = solution_min_norm(x0, d);
+end
+
+function [multiples, multiples_counts] = find_column_multiples(A)
+    tol = 1e-10;
+    n = size(A, 2);
+    multiples = zeros(0, 3);
+    for i = 1:n
+        if ~ismember(i, multiples(:,2))
+            for j = i+1:n
+                v1 = A(:,i);
+                v2 = A(:,j);
+                c = v2 \ v1;
+                if norm(v1 - c*v2) <= tol
+                    multiples = [multiples; [i, j, c]];
+                end
+            end
+        end
+    end
+    multiples_unique = unique(multiples(:,1));
+    multiples_sum = zeros(length(multiples_unique), 1);
+    for i = 1:length(multiples_unique)
+        multiples_sum(i) = sum(abs(multiples(multiples(:,1)==multiples_unique(i),3))) + 1;
+    end
+    multiples_counts = [multiples_unique, multiples_sum];
 end
 
