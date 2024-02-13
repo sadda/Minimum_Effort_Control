@@ -13,27 +13,27 @@ function [x, val] = min_effort(A, B, y, U)
     % Outputs:
     % x (vector): optimal solution of the above problem.
     % val (scalar): optimal value of the above problem.
-    
+
     tol = 1e-10;
-    
+
     A_big = [A; B];
     n = size(A_big, 2);
-    
+
     % Compute the optimal dual solution
     [val, i_max] = max(U*y);
     u_opt = U(i_max, :)';
-    
+
     % Assign the index sets for complementarity
     I0 = abs(A_big'*u_opt) <= tol;
     I1 = A_big'*u_opt > tol;
     I2 = A_big'*u_opt < -tol;
     J = [true(size(A,1), 1); u_opt(size(A,1)+1:end) < -tol];
-    
+
     % Use the complementarity conditions to compute the primal solution
     x = zeros(n,1);
     x(I1) = val;
     x(I2) = -val;
-    
+
     D = A_big(J,I0);
     d = y(J) - A_big(J,I1|I2)*x(I1|I2);
     % We need to solve the following equation for x(I0)
@@ -55,22 +55,22 @@ function [x, val] = min_effort(A, B, y, U)
         c_min2 = (-y(3) - A_big(3,I1|I2)*x(I1|I2) - A_big(3,I0)*t_p) / (A_big(3,I0)*t_d);
         c_max = min(c_max1, c_max2);
         c_min = max(c_min1, c_min2);
-        
+
         xs_a = x;
         xs_a(I0) = t_p + c_min*t_d;
         xs_b = x;
         xs_b(I0) = t_p + c_max*t_d;
-        
+
         norm_a = norm(A_big([3 4],:)*xs_a);
         norm_b = norm(A_big([3 4],:)*xs_b);
-        
+
         if norm(norm_a) > norm(norm_b) + tol
             c = c_min;
         elseif norm(norm_b) > norm(norm_a) + tol
             c = c_max;
         else
             c = 0.5*(c_min+c_max);
-        end        
+        end
         x(I0) = t_p + c*t_d;
     else
         % For the general case, we compute the l2 minimal solution.
@@ -79,6 +79,14 @@ function [x, val] = min_effort(A, B, y, U)
         D = D(basiccol,:);
         d = d(basiccol);
         x(I0) = D' * ((D * D') \ d);
+    end
+
+    % Check for solution optimality
+    if norm(A*x-y) > tol
+        throw("Problem was not solved");
+    end
+    if max(abs(x)) > val + tol
+        warning("COMPUTATIONS FAILED. SOLUTION IS SOBOPTIMAL.");
     end
 end
 
