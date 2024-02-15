@@ -1,4 +1,4 @@
-function [x, optimal_value, s] = min_effort(A, y, U, find_x, s)
+function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
     %    subject to   A * x = y1
@@ -18,15 +18,17 @@ function [x, optimal_value, s] = min_effort(A, y, U, find_x, s)
     % optimal_value (scalar): optimal value of the above problem.
 
     % Specify find_x if not provided
-    if nargin < 5
+    if nargin < 4
         s = [];
     end
-    if nargin < 4 || isequal(find_x, [])
+    if nargin < 3 || isequal(find_x, [])
         find_x = @(varargin) [];
-    end    
+    end
 
+    A = pars.A;
+    U = pars.U;
     tol = 1e-10;
-    [m, n] = size(A);
+    [~, n] = size(A);
 
     % Compute the optimal dual solution
     [optimal_value, i_max] = max(U*y);
@@ -72,40 +74,29 @@ function [x, optimal_value, s] = min_effort(A, y, U, find_x, s)
                 x(I0) = solve_n_n_plus_one(D, d);
                 s = solution_part(s, I0, 'n*(n+1) system');
             else
-                % Find columns which are multiples of each other
-                [multiples, multiples_counts] = find_column_multiples(D);
-                % Multiply the columns which are multiplied
-                D_modified = D;
-                for i = 1:size(multiples_counts,1)
-                    k = multiples_counts(i, 1);
-                    D_modified(:,k) = D_modified(:,k) * multiples_counts(i, 2);
-                end
-                % Remove columns which are multiples
-                D_modified(:, multiples(:,2)) = [];
-
-                if size(D_modified,1) + 1 == size(D_modified,2)
-                    % Solve the n*(n+1) system
-                    x0 = zeros(sum(I0),1);
-                    x0(setdiff(1:length(x0), multiples(:,2))) = solve_n_n_plus_one(D_modified, d);
-                    % Distribute the values into the multiples columns
-                    for k = 1:size(multiples,1)
-                        x0(multiples(k,2)) = x0(multiples(k,1)) * sign(multiples(k,3));
-                    end
-                    x(I0) = x0;
-                    s = solution_part(s, I0, 'n*(n+1) system modified');
-                else
-                    U_D = get_u(D);
-                    x(I0) = min_effort(D, d, U_D);
-                    s = solution_part(s, I0, 'get_u');
-                end
+                U_D = get_u(D);
+                x(I0) = min_effort(D, d, U_D);
+                s = solution_part(s, I0, 'get_u');
             end
         else
             s = solution_part(s, I0, 'l2 with reduced');
-        end        
+        end
     end
 
+    % Expand the solution to the original space
+    multiples = pars.multiples;
+    x2 = zeros(pars.n,1);
+    idx = find(~pars.zero_columns);
+    idx = idx(setdiff(1:length(idx), multiples(:,2)));
+    x2(idx) = x;
+    % Distribute the values into the multiples columns
+    for k = 1:size(multiples,1)
+        x2(multiples(k,2)) = x2(multiples(k,1)) * sign(multiples(k,3));
+    end
+    x = x2;
+
     % Check for solution optimality
-    if norm(A*x-y) > tol
+    if norm(pars.A_original*x-y) > tol
         throw("Problem was not solved");
     end
     if max(abs(x)) > optimal_value + tol
@@ -114,30 +105,6 @@ function [x, optimal_value, s] = min_effort(A, y, U, find_x, s)
 end
 
 
-
-function [multiples, multiples_counts] = find_column_multiples(A)
-    tol = 1e-10;
-    n = size(A, 2);
-    multiples = zeros(0, 3);
-    for i = 1:n
-        if ~ismember(i, multiples(:,2))
-            for j = i+1:n
-                v1 = A(:,i);
-                v2 = A(:,j);
-                c = v2 \ v1;
-                if norm(v1 - c*v2) <= tol
-                    multiples = [multiples; [i, j, c]];
-                end
-            end
-        end
-    end
-    multiples_unique = unique(multiples(:,1));
-    multiples_sum = zeros(length(multiples_unique), 1);
-    for i = 1:length(multiples_unique)
-        multiples_sum(i) = sum(abs(multiples(multiples(:,1)==multiples_unique(i),3))) + 1;
-    end
-    multiples_counts = [multiples_unique, multiples_sum];
-end
 
 function s = solution_part(s, I0, text)
     if isequal(s, [])
