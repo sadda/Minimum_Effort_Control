@@ -52,29 +52,28 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         % Use user-provided solution in present
         x(I0) = x_user;
         pars = solution_part(pars, I0, 'user-specified');
-    elseif rank_D == n
+    elseif rank_D == size(D, 2)
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
-        pars = solution_part(pars, I0, 'well-conditioned');
+        pars = solution_part(pars, I0, 'well-conditioned', 'D', D);
     else
         % Reduce the system to the necessary equations only. Rank of D is still m.
         [~, idx] = rref(D');
         D = D(idx, :);
         d = d(idx);
-        [m, n] = size(D);
         % Try l2 solution with reduced ranks
         x(I0) = D' * ((D * D') \ d);
         if max(abs(x)) <= optimal_value + tol
-            pars = solution_part(pars, I0, 'l2 with reduced', 'row_indices', idx);
+            pars = solution_part(pars, I0, 'l2 with reduced', 'D', D);
         else
-            if m+1 == n
+            if size(D,1)+1 == size(D,2)
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
-                pars = solution_part(pars, I0, 'n*(n+1) system', 'row_indices', idx);
+                pars = solution_part(pars, I0, 'n*(n+1) system', 'D', D);
             else
                 U_D = get_u(D);
                 x(I0) = min_effort(D, d, U_D);
-                pars = solution_part(pars, I0, 'get_u');
+                pars = solution_part(pars, I0, 'get_u', 'D', D);
             end
         end
     end
@@ -104,10 +103,7 @@ end
 
 function pars = solution_part(pars, I0, text, varargin)
     if ~isfield(pars, "analysis")
-        pars.analysis = struct('I0', I0, 'text', text, 'count', 1);
-        for i = 1:length(varargin)/2
-            pars.analysis = {create_new_struct(I0, text, varargin{:})};
-        end
+        pars.analysis = {create_new_struct(I0, text, varargin{:})};
     else
         found = false;
         for i = 1:length(pars.analysis)
