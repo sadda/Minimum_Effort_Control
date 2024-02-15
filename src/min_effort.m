@@ -72,14 +72,14 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
             if m+1 == n
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
-                pars = solution_part(pars, I0, 'n*(n+1) system');
+                pars = solution_part(pars, I0, 'n*(n+1) system', 'row_indices', idx);
             else
                 U_D = get_u(D);
                 x(I0) = min_effort(D, d, U_D);
                 pars = solution_part(pars, I0, 'get_u');
             end
         else
-            pars = solution_part(pars, I0, 'l2 with reduced');
+            pars = solution_part(pars, I0, 'l2 with reduced', 'row_indices', idx);
         end
     end
 
@@ -106,21 +106,31 @@ end
 
 
 
-function pars = solution_part(pars, I0, text)
+function pars = solution_part(pars, I0, text, varargin)
     if ~isfield(pars, "analysis")
         pars.analysis = struct('I0', I0, 'text', text, 'count', 1);
+        for i = 1:length(varargin)/2
+            pars.analysis = {create_new_struct(I0, text, varargin{:})};
+        end
     else
         found = false;
         for i = 1:length(pars.analysis)
-            if isequal(pars.analysis(i).I0, I0) && isequal(pars.analysis(i).text, text)
+            if isequal(pars.analysis{i}.I0, I0) && isequal(pars.analysis{i}.text, text)
                 found = true;
                 break
             end
         end
         if found
-            pars.analysis(i).count = pars.analysis(i).count + 1;
+            pars.analysis{i}.count = pars.analysis{i}.count + 1;
         else
-            pars.analysis = [pars.analysis; struct('I0', I0, 'text', text, 'count', 1)];
+            pars.analysis = [pars.analysis; create_new_struct(I0, text, varargin{:})];
         end
+    end
+end
+
+function output = create_new_struct(I0, text, varargin)
+    output = struct('I0', I0, 'text', text, 'count', 1);
+    for i = 1:length(varargin)/2
+        output.(varargin{2*i-1}) = varargin{2*i};
     end
 end
