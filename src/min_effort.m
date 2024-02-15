@@ -63,8 +63,11 @@ function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
         % Remove zero columns
         D(:, sum(abs(D),1) == 0) = [];
         % Reduce the system to the necessary equations only. Rank of D is still m.
-        D = D(1:rank_D,:);
-        d = d(1:rank_D);
+        [~, idx] = rref(D');
+        %D = D(1:rank_D,:);
+        %d = d(1:rank_D);
+        D = D(idx, :);
+        d = d(idx);
         [m, n] = size(D);
         % Try l2 solution with reduced ranks
         x(I0) = D' * ((D * D') \ d);
