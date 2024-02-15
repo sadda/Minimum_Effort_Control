@@ -23,14 +23,14 @@ end
 
 %% Output: Precompute set U
 
-U = get_u(A);
+pars = get_u(A);
 
 %% Output: Get a solution for every time
 
 xs = zeros(n_x, n_t);
 xs_l2 = zeros(n_x, n_t);
 for k = 1:n_t
-    xs(:,k) = min_effort(A, ys(:,k), U);
+    xs(:,k) = min_effort(pars, ys(:,k));
     xs_l2(:,k) = A'*((A*A')\ys(:,k));
 end
 

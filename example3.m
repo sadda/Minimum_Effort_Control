@@ -1,5 +1,5 @@
-clear all;
-close all;
+% clear all;
+% close all;
 
 addpath("src")
 addpath("user-provided")
@@ -32,13 +32,13 @@ N = round(Tsim/dt) + 1;
 % Compute or load U
 file_name = 'data/U3.mat';
 if ~isfile(file_name)
-    U = get_u(A);
+    pars = get_u(A);
     if ~isfolder('data')
         mkdir('data');
     end
-    save(file_name, "U");
+    save(file_name, "pars");
 else
-    load(file_name, "U");
+    load(file_name, "pars");
 end
 
 s = [];
@@ -57,7 +57,7 @@ for k = 1:N
     y = A1*[ua;ub;uc];
 
     % x = min_effort(A, y, U, @find_x_3);
-    [x, ~, s] = min_effort(A, y, U, [], s);
+    [x, ~, s] = min_effort(pars, y, [], s);
 
     o_t(k,1) = t;
     o_y(k,:) = y';
