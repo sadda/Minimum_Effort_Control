@@ -57,12 +57,8 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         x(I0) = D \ d;
         pars = solution_part(pars, I0, 'well-conditioned');
     else
-        % Remove zero columns
-        D(:, sum(abs(D),1) == 0) = [];
         % Reduce the system to the necessary equations only. Rank of D is still m.
         [~, idx] = rref(D');
-        %D = D(1:rank_D,:);
-        %d = d(1:rank_D);
         D = D(idx, :);
         d = d(idx);
         [m, n] = size(D);
