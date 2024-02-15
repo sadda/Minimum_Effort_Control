@@ -1,21 +1,17 @@
 function [x, optimal_value, pars] = min_effort(pars, y, find_x)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
-    %    subject to   A * x = y1
+    %    subject to   pars.A_original * x = y
     %
     % Inputs:
-    % A (matrix): matrix A from above.
+    % pars (struct): structure of internal data obtained from get_u(A).
     % y (vector): vector y from above.
-    % U (matrix): set of extremal points of the dual problem computed by get_u(A, B).
     % find_x (function, optional): upon calling find_x(D, d, I0) solves.
-    % s (struct, optional): used for monitoring where the solution is computed.
-    %       the minimum effort problem D * x_out = d. Even though
-    %       this procedure should handle any case, it may used to handle
-    %       problematic cases in a fast way.
     %
     % Outputs:
     % x (vector): optimal solution of the above problem.
     % optimal_value (scalar): optimal value of the above problem.
+    % pars (struct): contains information of how solutions were computed.
 
     % Specify find_x if not provided
     if nargin < 3 || isequal(find_x, [])
@@ -51,11 +47,11 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
-        pars = solution_part(pars, I0, 'user-specified');
+        pars = solution_part(pars, I0, 'user-specified solution');
     elseif rank_D == size(D, 2)
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
-        pars = solution_part(pars, I0, 'well-conditioned', 'D', D);
+        pars = solution_part(pars, I0, 'unique solution', 'D', D);
     else
         % Reduce the system to the necessary equations only. Rank of D is still m.
         [~, idx] = rref(D');
@@ -64,16 +60,16 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         % Try l2 solution with reduced ranks
         x(I0) = D' * ((D * D') \ d);
         if max(abs(x)) <= optimal_value + tol
-            pars = solution_part(pars, I0, 'l2 with reduced', 'D', D);
+            pars = solution_part(pars, I0, 'l2 solution', 'D', D);
         else
             if size(D,1)+1 == size(D,2)
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
-                pars = solution_part(pars, I0, 'n*(n+1) system', 'D', D);
+                pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
             else
                 U_D = get_u(D);
                 x(I0) = min_effort(D, d, U_D);
-                pars = solution_part(pars, I0, 'get_u', 'D', D);
+                pars = solution_part(pars, I0, 'get_u solution', 'D', D);
             end
         end
     end
