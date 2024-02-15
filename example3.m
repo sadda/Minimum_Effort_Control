@@ -30,7 +30,7 @@ Tsim = 0.06;
 N = round(Tsim/dt) + 1;
 
 % Compute or load U
-file_name = 'data/U3.mat';
+file_name = 'data/pars_3.mat';
 if ~isfile(file_name)
     pars = get_u(A);
     if ~isfolder('data')
