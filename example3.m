@@ -41,7 +41,6 @@ else
     load(file_name, "pars");
 end
 
-s = [];
 for k = 1:N
     wt = w*t;
     % Three phase voltage, ground fault (zero-sequence) in t = ....
@@ -56,8 +55,8 @@ for k = 1:N
     end
     y = A1*[ua;ub;uc];
 
-    % x = min_effort(A, y, U, @find_x_3);
-    [x, ~, s] = min_effort(pars, y, [], s);
+    % [x, ~, pars] = min_effort(pars, y, @find_x_3);
+    [x, ~, pars] = min_effort(pars, y, []);
 
     o_t(k,1) = t;
     o_y(k,:) = y';
