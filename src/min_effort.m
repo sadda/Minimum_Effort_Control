@@ -64,7 +64,9 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         [m, n] = size(D);
         % Try l2 solution with reduced ranks
         x(I0) = D' * ((D * D') \ d);
-        if max(abs(x)) > optimal_value + tol
+        if max(abs(x)) <= optimal_value + tol
+            pars = solution_part(pars, I0, 'l2 with reduced', 'row_indices', idx);
+        else
             if m+1 == n
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
@@ -74,8 +76,6 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
                 x(I0) = min_effort(D, d, U_D);
                 pars = solution_part(pars, I0, 'get_u');
             end
-        else
-            pars = solution_part(pars, I0, 'l2 with reduced', 'row_indices', idx);
         end
     end
 
