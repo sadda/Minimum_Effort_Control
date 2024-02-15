@@ -1,4 +1,4 @@
-function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
+function [x, optimal_value, pars] = min_effort(pars, y, find_x)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
     %    subject to   A * x = y1
@@ -18,9 +18,6 @@ function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
     % optimal_value (scalar): optimal value of the above problem.
 
     % Specify find_x if not provided
-    if nargin < 4
-        s = [];
-    end
     if nargin < 3 || isequal(find_x, [])
         find_x = @(varargin) [];
     end
@@ -54,11 +51,11 @@ function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
-        s = solution_part(s, I0, 'user-specified');
+        pars = solution_part(pars, I0, 'user-specified');
     elseif rank_D == n
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
-        s = solution_part(s, I0, 'well-conditioned');
+        pars = solution_part(pars, I0, 'well-conditioned');
     else
         % Remove zero columns
         D(:, sum(abs(D),1) == 0) = [];
@@ -75,14 +72,14 @@ function [x, optimal_value, s] = min_effort(pars, y, find_x, s)
             if m+1 == n
                 % Solve n*(n+1) system
                 x(I0) = solve_n_n_plus_one(D, d);
-                s = solution_part(s, I0, 'n*(n+1) system');
+                pars = solution_part(pars, I0, 'n*(n+1) system');
             else
                 U_D = get_u(D);
                 x(I0) = min_effort(D, d, U_D);
-                s = solution_part(s, I0, 'get_u');
+                pars = solution_part(pars, I0, 'get_u');
             end
         else
-            s = solution_part(s, I0, 'l2 with reduced');
+            pars = solution_part(pars, I0, 'l2 with reduced');
         end
     end
 
@@ -109,26 +106,21 @@ end
 
 
 
-function s = solution_part(s, I0, text)
-    if isequal(s, [])
-        s = add_field(s, I0, text);
+function pars = solution_part(pars, I0, text)
+    if ~isfield(pars, "analysis")
+        pars.analysis = struct('I0', I0, 'text', text, 'count', 1);
     else
         found = false;
-        for i = 1:length(s)
-            if isequal(s(i).I0, I0) && isequal(s(i).text, text)
+        for i = 1:length(pars.analysis)
+            if isequal(pars.analysis(i).I0, I0) && isequal(pars.analysis(i).text, text)
                 found = true;
                 break
             end
         end
         if found
-            s(i).count = s(i).count + 1;
+            pars.analysis(i).count = pars.analysis(i).count + 1;
         else
-            s = add_field(s, I0, text);
+            pars.analysis = [pars.analysis; struct('I0', I0, 'text', text, 'count', 1)];
         end
     end
 end
-
-function s = add_field(s, I0, text)
-    s = [s; struct('I0', I0, 'text', text, 'count', 1)];
-end
-
