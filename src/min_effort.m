@@ -67,8 +67,8 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
                 x(I0) = solve_n_n_plus_one(D, d);
                 pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
             else
-                U_D = get_u(D);
-                x(I0) = min_effort(D, d, U_D);
+                pars = get_u(D);
+                x(I0) = min_effort(pars, d, find_x);
                 pars = solution_part(pars, I0, 'get_u solution', 'D', D);
             end
         end
