@@ -103,7 +103,8 @@ function pars = solution_part(pars, I0, text, varargin)
     if pars.analysis_update
         if ~isfield(pars, 'analysis')
             pars.analysis_i = pars.analysis_i + 1;
-            pars.analysis = {create_new_struct(I0, text, pars.analysis_i, varargin{:})};
+            pars.analysis = {create_new_struct(I0, text)};
+            pars = update_pars(pars, 1, varargin{:});
         else
             found = false;
             for i = 1:length(pars.analysis)
@@ -113,20 +114,26 @@ function pars = solution_part(pars, I0, text, varargin)
                 end
             end
             if found
-                pars.analysis{i}.count = pars.analysis{i}.count + 1;
                 pars.analysis_i = pars.analysis_i + 1;
-                pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
+                pars = update_pars(pars, i, varargin{:});
             else
                 pars.analysis_i = pars.analysis_i + 1;
-                pars.analysis = [pars.analysis; create_new_struct(I0, text, pars.analysis_i, varargin{:})];
+                pars.analysis = [pars.analysis; create_new_struct(I0, text)];
+                pars = update_pars(pars, length(pars.analysis), varargin{:});
             end
         end
     end
 end
 
-function output = create_new_struct(I0, text, analysis_i, varargin)
-    output = struct('I0', I0, 'text', text, 'count', 1, 'i', analysis_i);
-    for i = 1:length(varargin)/2
-        output.(varargin{2*i-1}) = varargin{2*i};
+function output = create_new_struct(I0, text)
+    output = struct('I0', I0, 'text', text, 'count', 0, 'i', []);
+end
+
+function pars = update_pars(pars, i, varargin)
+    pars.analysis{i}.count = pars.analysis{i}.count + 1;
+    pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
+    for j = 1:length(varargin)/2
+        pars.analysis{i}.(varargin{2*j-1}) = varargin{2*j};
     end
 end
+
