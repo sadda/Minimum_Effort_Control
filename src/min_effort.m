@@ -57,17 +57,16 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         [~, idx] = rref(D');
         D = D(idx, :);
         d = d(idx);
-        % Try l2 solution with reduced ranks
-        x(I0) = D' * ((D * D') \ d);
-        if max(abs(x)) <= optimal_value + tol
-            pars = solution_part(pars, I0, 'l2 solution', 'D', D);
+        if size(D,1)+1 == size(D,2)
+            % Solve n*(n+1) system
+            [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
+            x(I0) = x0 + 0.5*(s_min+s_max)*direction;
+            pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
         else
-            if size(D,1)+1 == size(D,2)
-                % Solve n*(n+1) system
-                % x(I0) = solve_n_n_plus_one(D, d);
-                [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
-                x(I0) = x0 + 0.5*(s_min+s_max)*direction;
-                pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
+            % Try l2 solution with reduced ranks
+            x(I0) = D' * ((D * D') \ d);
+            if max(abs(x)) <= optimal_value + tol
+                pars = solution_part(pars, I0, 'l2 solution', 'D', D);
             else
                 % TODO: does not work for find_x
                 pars_subsystem = get_u(D);
