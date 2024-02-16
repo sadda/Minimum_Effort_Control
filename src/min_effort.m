@@ -43,7 +43,7 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
     % We need to solve the following equation for x(I0)
     % D * x(I0) = d;
     rank_D = rank(D);
-    x_user = find_x(D, d, I0);
+    x_user = find_x(D, d, I0, optimal_value);
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
@@ -61,7 +61,7 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
             % Solve n*(n+1) system
             [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
             x(I0) = x0 + 0.5*(s_min+s_max)*direction;
-            pars = solution_part(pars, I0, 'n*(n+1) system solution', 2, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
+            pars = solution_part(pars, I0, 'n*(n+1) system solution', 2, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
         else
             % Try l2 solution with reduced ranks
             x(I0) = D' * ((D * D') \ d);
@@ -132,15 +132,17 @@ end
 function pars = update_pars(pars, i, varargin)
     pars.analysis{i}.count = pars.analysis{i}.count + 1;
     pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
-    n_constant = varargin{1};
-    for j = 1:n_constant
-        pars.analysis{i}.(varargin{2*j}) = varargin{2*j+1};
-    end
-    for j = n_constant+1:(length(varargin)-1)/2
-        if isfield(pars.analysis{i}, varargin{2*j})
-            pars.analysis{i}.(varargin{2*j}) = [pars.analysis{i}.(varargin{2*j}); varargin{2*j+1}'];
-        else
-            pars.analysis{i}.(varargin{2*j}) = [varargin{2*j+1}'];
+    if length(varargin) >= 1
+        n_constant = varargin{1};
+        for j = 1:n_constant
+            pars.analysis{i}.(varargin{2*j}) = varargin{2*j+1};
+        end
+        for j = n_constant+1:(length(varargin)-1)/2
+            if isfield(pars.analysis{i}, varargin{2*j})
+                pars.analysis{i}.(varargin{2*j}) = [pars.analysis{i}.(varargin{2*j}); varargin{2*j+1}'];
+            else
+                pars.analysis{i}.(varargin{2*j}) = [varargin{2*j+1}'];
+            end
         end
     end
 end
