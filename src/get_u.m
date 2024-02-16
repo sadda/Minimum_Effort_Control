@@ -67,6 +67,8 @@ function pars = get_u(A)
     pars.U = U;
     pars.zero_columns = zero_columns;
     pars.multiples = multiples;
+    pars.analysis_update = true;
+    pars.analysis_i = 0;
 end
 
 

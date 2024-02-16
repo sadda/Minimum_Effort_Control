@@ -67,8 +67,9 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
                 x(I0) = solve_n_n_plus_one(D, d);
                 pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
             else
-                pars = get_u(D);
-                x(I0) = min_effort(pars, d, find_x);
+                % TODO: does not work for find_x
+                pars_subsystem = get_u(D);
+                x(I0) = min_effort(pars_subsystem, d, find_x);
                 pars = solution_part(pars, I0, 'get_u solution', 'D', D);
             end
         end
@@ -98,26 +99,32 @@ end
 
 
 function pars = solution_part(pars, I0, text, varargin)
-    if ~isfield(pars, "analysis")
-        pars.analysis = {create_new_struct(I0, text, varargin{:})};
-    else
-        found = false;
-        for i = 1:length(pars.analysis)
-            if isequal(pars.analysis{i}.I0, I0) && isequal(pars.analysis{i}.text, text)
-                found = true;
-                break
-            end
-        end
-        if found
-            pars.analysis{i}.count = pars.analysis{i}.count + 1;
+    if pars.analysis_update
+        if ~isfield(pars, 'analysis')
+            pars.analysis = {create_new_struct(I0, text, pars.analysis_i, varargin{:})};
+            pars.analysis_i = pars.analysis_i + 1;
         else
-            pars.analysis = [pars.analysis; create_new_struct(I0, text, varargin{:})];
+            found = false;
+            for i = 1:length(pars.analysis)
+                if isequal(pars.analysis{i}.I0, I0) && isequal(pars.analysis{i}.text, text)
+                    found = true;
+                    break
+                end
+            end
+            if found
+                pars.analysis{i}.count = pars.analysis{i}.count + 1;
+                pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
+                pars.analysis_i = pars.analysis_i + 1;
+            else
+                pars.analysis = [pars.analysis; create_new_struct(I0, text, pars.analysis_i, varargin{:})];
+                pars.analysis_i = pars.analysis_i + 1;
+            end
         end
     end
 end
 
-function output = create_new_struct(I0, text, varargin)
-    output = struct('I0', I0, 'text', text, 'count', 1);
+function output = create_new_struct(I0, text, analysis_i, varargin)
+    output = struct('I0', I0, 'text', text, 'count', 1, 'i', analysis_i);
     for i = 1:length(varargin)/2
         output.(varargin{2*i-1}) = varargin{2*i};
     end
