@@ -6,6 +6,10 @@ function [x0, d, s_min, s_max] = solve_n_n_plus_one_all_solutions(A, b, max_inf_
 
     % Find the kernel and a particular solution
     d = null(A);
+    if d(1) ~= 0
+        d = d ./ d(1);
+        d = d ./ sign(d(1));
+    end
     x0 = A \ b;
 
     % Find the solution
