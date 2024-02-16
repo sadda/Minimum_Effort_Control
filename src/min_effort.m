@@ -64,7 +64,9 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
         else
             if size(D,1)+1 == size(D,2)
                 % Solve n*(n+1) system
-                x(I0) = solve_n_n_plus_one(D, d);
+                % x(I0) = solve_n_n_plus_one(D, d);
+                [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
+                x(I0) = x0 + 0.5*(s_min+s_max)*direction;
                 pars = solution_part(pars, I0, 'n*(n+1) system solution', 'D', D);
             else
                 % TODO: does not work for find_x
@@ -101,8 +103,8 @@ end
 function pars = solution_part(pars, I0, text, varargin)
     if pars.analysis_update
         if ~isfield(pars, 'analysis')
-            pars.analysis = {create_new_struct(I0, text, pars.analysis_i, varargin{:})};
             pars.analysis_i = pars.analysis_i + 1;
+            pars.analysis = {create_new_struct(I0, text, pars.analysis_i, varargin{:})};
         else
             found = false;
             for i = 1:length(pars.analysis)
@@ -113,11 +115,11 @@ function pars = solution_part(pars, I0, text, varargin)
             end
             if found
                 pars.analysis{i}.count = pars.analysis{i}.count + 1;
+                pars.analysis_i = pars.analysis_i + 1;
                 pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
-                pars.analysis_i = pars.analysis_i + 1;
             else
-                pars.analysis = [pars.analysis; create_new_struct(I0, text, pars.analysis_i, varargin{:})];
                 pars.analysis_i = pars.analysis_i + 1;
+                pars.analysis = [pars.analysis; create_new_struct(I0, text, pars.analysis_i, varargin{:})];
             end
         end
     end
