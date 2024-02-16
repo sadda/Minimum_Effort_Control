@@ -17,8 +17,8 @@ function analyze_solution(pars)
                     already_handled(j) = true;
                     fprintf('Mode = %s\n', f2.text);
                     fprintf('Count = %d\n', f2.count);
-                    fprintf('Solving system Dx=d with D with rank %d\n', rank(f2.D));
                     if isfield(f2, 'D')
+                        fprintf('Solving system Dx=d with D with rank %d\n', rank(f2.D));
                         disp(f2.D)
                     end
                 end
