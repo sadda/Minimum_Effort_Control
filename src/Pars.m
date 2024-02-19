@@ -2,13 +2,10 @@ classdef Pars < handle
     properties
         A
         A_original
-        m
-        n
         U
         zero_columns
         multiples
         analysis
-        analysis_update
         analysis_i
     end
 
@@ -19,30 +16,29 @@ classdef Pars < handle
             for i = 1:length(s_fields)
                 self.(s_fields{i}) = s.(s_fields{i});
             end
+            self.analysis_i = 0;
         end
 
         function solution_part(self, I0, text, varargin)
-            if self.analysis_update
-                if isequal(self.analysis, [])
+            if isequal(self.analysis, [])
+                self.analysis_i = self.analysis_i + 1;
+                self.analysis = {self.create_new_struct(I0, text)};
+                self.update_self(1, varargin{:});
+            else
+                found = false;
+                for i = 1:length(self.analysis)
+                    if isequal(self.analysis{i}.I0, I0) && isequal(self.analysis{i}.text, text)
+                        found = true;
+                        break
+                    end
+                end
+                if found
                     self.analysis_i = self.analysis_i + 1;
-                    self.analysis = {self.create_new_struct(I0, text)};
-                    self.update_self(1, varargin{:});
+                    self.update_self(i, varargin{:});
                 else
-                    found = false;
-                    for i = 1:length(self.analysis)
-                        if isequal(self.analysis{i}.I0, I0) && isequal(self.analysis{i}.text, text)
-                            found = true;
-                            break
-                        end
-                    end
-                    if found
-                        self.analysis_i = self.analysis_i + 1;
-                        self.update_self(i, varargin{:});
-                    else
-                        self.analysis_i = self.analysis_i + 1;
-                        self.analysis = [self.analysis; self.create_new_struct(I0, text)];
-                        self.update_self(length(self.analysis), varargin{:});
-                    end
+                    self.analysis_i = self.analysis_i + 1;
+                    self.analysis = [self.analysis; self.create_new_struct(I0, text)];
+                    self.update_self(length(self.analysis), varargin{:});
                 end
             end
         end

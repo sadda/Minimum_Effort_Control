@@ -176,7 +176,7 @@ classdef Solver < handle
             multiples = self.pars.multiples;
             idx = find(~self.pars.zero_columns);
             idx = idx(setdiff(1:length(idx), multiples(:,2)));
-            x_expanded = zeros(self.pars.n,1);
+            x_expanded = zeros(size(self.pars.A_original,2),1);
             x_expanded(idx) = x;
             % Distribute the values into the multiples columns
             for k = 1:size(multiples,1)
