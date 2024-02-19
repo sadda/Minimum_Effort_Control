@@ -11,7 +11,7 @@ classdef Pars < handle
         analysis_update
         analysis_i
     end
-    
+
     methods
         function self = Pars(A)
             s = get_u(A);
@@ -106,7 +106,7 @@ classdef Pars < handle
                                 end
                                 if isfield(f2, 'idx')
                                     fprintf('Null space of D\n');
-                                    disp(f2.direction)
+                                    disp(f2.v)
                                 end
                             end
                         end

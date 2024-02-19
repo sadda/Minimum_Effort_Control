@@ -25,26 +25,22 @@ classdef Solver < handle
             %    subject to   self.pars.A_original * x = y
             %
             % Inputs:
-            % self.pars (struct): structure of internal data obtained from get_u(A).
             % y (vector): vector y from above.
-            % find_x (function, optional): upon calling find_x(D, d, I0) solves.
             %
             % Outputs:
             % x (vector): optimal solution of the above problem.
             % optimal_value (scalar): optimal value of the above problem.
-            % self.pars (struct): contains information of how solutions were computed.
 
-            [x, I0, optimal_value, D, d] = self.solve_optimal_value(y);
+            [x, I0, optimal_value, D, d] = self.duality_solution(y);
 
             % We need to solve the following equation for x(I0)
             % D * x(I0) = d;
-            rank_D = rank(D);
             x_user = self.find_x(self, D, d, I0, optimal_value);
             if ~isequal(x_user, [])
                 % Use user-provided solution in present
                 x(I0) = x_user;
                 self.pars.solution_part(I0, 'user-specified solution');
-            elseif rank_D == size(D, 2)
+            elseif rank(D) == size(D, 2)
                 % The simple case when it is well-conditioned
                 x(I0) = D \ d;
                 self.pars.solution_part(I0, 'unique solution', 1, 'D', D);
@@ -55,9 +51,9 @@ classdef Solver < handle
                 d = d(idx);
                 if size(D,1)+1 == size(D,2)
                     % Solve n*(n+1) system
-                    [x0, direction, s_min, s_max] = self.solve_n_n_plus_one_all_solutions(D, d, optimal_value);
-                    x(I0) = x0 + 0.5*(s_min+s_max)*direction;
-                    self.pars.solution_part(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
+                    [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions(D, d, optimal_value);
+                    x(I0) = x0 + 0.5*(s_min+s_max)*v;
+                    self.pars.solution_part(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
                 else
                     % Try l2 solution with reduced ranks
                     x(I0) = D' * ((D * D') \ d);
@@ -78,13 +74,13 @@ classdef Solver < handle
         end
 
         function [x, optimal_value] = min_effort_user_provided(self, y)
-            [x, I0, optimal_value, D, d] = self.solve_optimal_value(y);
+            [x, I0, optimal_value, D, d] = self.duality_solution(y);
             x(I0) = self.find_x(self, D, d, I0, optimal_value);
             x = self.expand_solution(x);
             self.check_solution_quality(x, y, optimal_value);
         end
 
-        function [x, I0, optimal_value, D, d] = solve_optimal_value(self, y)
+        function [x, I0, optimal_value, D, d] = duality_solution(self, y)
             % Compute the optimal dual solution
             [optimal_value, i_max] = max(self.pars.U*y);
             u_opt = self.pars.U(i_max, :)';
@@ -105,21 +101,18 @@ classdef Solver < handle
             d = y - A(:,I1|I2)*x(I1|I2);
         end
 
-        function x = solve_n_n_plus_one(self, A, b)
-            [m, n] = size(A);
-            rank_A = rank(A);
-            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
-            assert(rank_A == m, "Matrix A must have rank m.");
+        function x = n_n_plus_one_min_norm_solution_matrix_form(self, A, b)
+            self.check_n_n_plus_one(A)
 
             % Find the kernel and a particular solution
             d = null(A);
             x0 = A \ b;
 
             % Find the solution
-            x = self.solution_min_norm(x0, d);
+            x = self.n_n_plus_one_min_norm_solution(x0, d);
         end
 
-        function x_opt = solution_min_norm(self, x0, d)
+        function x_opt = n_n_plus_one_min_norm_solution(~, x0, d)
             % Finds x = x0+s*d with minimal l_infty norm.
             n = length(d);
             val_opt = inf;
@@ -145,36 +138,35 @@ classdef Solver < handle
             end
         end
 
-        function [x0, d, s_min, s_max] = solve_n_n_plus_one_all_solutions(self, A, b, max_inf_norm)
-            [m, n] = size(A);
-            rank_A = rank(A);
-            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
-            assert(rank_A == m, "Matrix A must have rank m.");
+        function [x0, v, s_min, s_max] = n_n_plus_one_all_solutions_matrix_form(self, A, b, max_inf_norm)
+            self.check_n_n_plus_one(A)
 
             % Find the kernel and a particular solution
-            d = null(A);
-            if d(1) ~= 0
-                d = d ./ d(1);
-                d = d ./ sign(d(1));
+            v = null(A);
+            if v(1) ~= 0
+                v = v ./ v(1);
+                v = v ./ sign(v(1));
             end
             x0 = A \ b;
 
             % Find the solution
-            [s_min, s_max] = self.solutions_prescribed_min_norm(x0, d, max_inf_norm);
+            [s_min, s_max] = self.n_n_plus_one_all_solutions(x0, v, max_inf_norm);
         end
 
-        function [s_min, s_max] = solutions_prescribed_min_norm(self, x0, d, max_inf_norm)
-            % Finds all solution x = x0+s*d with l_infty norm below max_inf_norm.
-            n = length(d);
+        function [s_min, s_max] = n_n_plus_one_all_solutions(~, x0, v, max_inf_norm)
+            % Finds all solution x = x0+s*v with l_infty norm below max_inf_norm.
+            % In the case of v=null(A) and x0=A\b when A has size n*(n+1),
+            % the function finds the solution of A*x=b.
+
             s_min = -inf;
             s_max = inf;
-            for i=1:n
-                if d(i) > 0
-                    s_min = max(s_min, (-max_inf_norm - x0(i)) / d(i));
-                    s_max = min(s_max, (max_inf_norm - x0(i)) / d(i));
+            for i=1:length(v)
+                if v(i) > 0
+                    s_min = max(s_min, (-max_inf_norm - x0(i)) / v(i));
+                    s_max = min(s_max, (max_inf_norm - x0(i)) / v(i));
                 else
-                    s_min = max(s_min, (max_inf_norm - x0(i)) / d(i));
-                    s_max = min(s_max, (-max_inf_norm - x0(i)) / d(i));
+                    s_min = max(s_min, (max_inf_norm - x0(i)) / v(i));
+                    s_max = min(s_max, (-max_inf_norm - x0(i)) / v(i));
                 end
             end
         end
@@ -200,6 +192,12 @@ classdef Solver < handle
             if max(abs(x)) > optimal_value + self.tol
                 warning("COMPUTATIONS FAILED. SOLUTION IS SOBOPTIMAL.");
             end
+        end
+
+        function check_n_n_plus_one(~, A)
+            [m, n] = size(A);
+            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
+            assert(rank(A) == m, "Matrix A must have rank m.");
         end
     end
 end
