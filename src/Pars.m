@@ -132,7 +132,7 @@ classdef Pars < handle
                                     fprintf('Kept indices of D\n');
                                     disp(f2.idx)
                                 end
-                                if isfield(f2, 'idx')
+                                if isfield(f2, 'v')
                                     fprintf('Null space of D\n');
                                     disp(f2.v)
                                 end
