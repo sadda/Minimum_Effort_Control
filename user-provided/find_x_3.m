@@ -35,6 +35,27 @@ function x = find_x_3(solver, ~, d, I0, max_inf_norm)
             ];
         idx = [1; 2];
         x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm);
+    elseif isequal(I0, logical([1;0;0;0;0;1]))
+        D_pse = [
+            0.750000000000000   0;
+            0   0.866025403784439;
+            ];
+        idx = [1; 2];
+        x = D_pse * d(idx);
+    elseif isequal(I0, logical([0;1;0;0;1;0]))
+        D_pse = [
+            0.375000000000000   0.649519052838329
+            0.750000000000000  -0.433012701892219
+            ];
+        idx = [1; 2];
+        x = D_pse * d(idx);
+    elseif isequal(I0, logical([0;0;1;1;0;0]))
+        D_pse = [
+            -0.750000000000000  -0.433012701892219
+            -0.375000000000000   0.649519052838329
+            ];
+        idx = [1; 2];
+        x = D_pse * d(idx);
     elseif length(I0) == 6
         throw('The case above is not handled.')
     else

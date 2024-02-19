@@ -96,4 +96,4 @@ pars.plot_s_min_s_max(dt, 'LineWidth', 3)
 xlim([0,Tsim]);
 set(gcf, 'Position', get(0, 'Screensize'));
 
-
+pars.analyze_solution(true);
