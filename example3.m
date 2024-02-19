@@ -1,5 +1,7 @@
-% clear all;
-% close all;
+% TODO: UDELAT SKRIPT Z MIN_EFFORT, KDE NEJSOU BLBOSTI
+
+clear all;
+close all;
 
 addpath("src")
 addpath("user-provided")
@@ -55,8 +57,8 @@ for k = 1:N
     end
     y = A1*[ua;ub;uc];
 
-    % [x, ~, pars] = min_effort(pars, y, @find_x_3);
-    [x, ~, pars] = min_effort(pars, y, []);
+    [x, ~, pars] = min_effort(pars, y, @find_x_3);
+    %[x, ~, pars] = min_effort(pars, y, []);
 
     o_t(k,1) = t;
     o_y(k,:) = y';
@@ -67,6 +69,7 @@ end
 y_lim = 0.8;
 
 figure;
+set(gcf, 'Position', get(0, 'Screensize'));
 subplot(2,2,1);
 plot(o_t, o_y, 'LineWidth', 3); grid on;
 
@@ -81,4 +84,26 @@ ylim([-y_lim,y_lim]);
 subplot(2,2,4);
 plot(o_t, [o_x(:,7),o_x(:,8),o_x(:,9)], 'LineWidth', 3); grid on;
 ylim([-y_lim,y_lim]);
+
+
+% for i = 0:length(pars.analysis)
+%     if i == 0
+%         idx = 1:N;
+%     else
+%         idx = pars.analysis{i}.i;
+%     end
+%     figure();
+%     set(gcf, 'Position', get(0, 'Screensize'));
+%     scatter(o_t(idx), [o_x(idx,1:3)], '.');
+%     xlim([0, Tsim])
+%     ylim([-y_lim,y_lim]);
+%     title('Case ' + string(i))
+% end
+% 
+% for i = 1:length(pars.analysis)
+%     'Case ' + string(i)
+%     disp(pars.analysis{i}.I0)
+%     disp(pars.analysis{i}.text)
+% end
+
 
