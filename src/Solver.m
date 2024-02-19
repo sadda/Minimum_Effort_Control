@@ -39,11 +39,11 @@ classdef Solver < handle
             if ~isequal(x_user, [])
                 % Use user-provided solution in present
                 x(I0) = x_user;
-                self.pars.solution_part(I0, 'user-specified solution');
+                self.pars.increase_counter(I0, 'user-specified solution');
             elseif rank(D) == size(D, 2)
                 % The simple case when it is well-conditioned
                 x(I0) = D \ d;
-                self.pars.solution_part(I0, 'unique solution', 1, 'D', D);
+                self.pars.increase_counter(I0, 'unique solution', 1, 'D', D);
             else
                 % Reduce the system to the necessary equations only. Rank of D is still m.
                 [~, idx] = rref(D');
@@ -51,20 +51,20 @@ classdef Solver < handle
                 d = d(idx);
                 if size(D,1)+1 == size(D,2)
                     % Solve n*(n+1) system
-                    [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions(D, d, optimal_value);
+                    [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions_matrix_form(D, d, optimal_value);
                     x(I0) = x0 + 0.5*(s_min+s_max)*v;
-                    self.pars.solution_part(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
+                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
                 else
                     % Try l2 solution with reduced ranks
                     x(I0) = D' * ((D * D') \ d);
                     if max(abs(x)) <= optimal_value + self.tol
-                        self.pars.solution_part(I0, 'l2 solution', 1, 'D', D);
+                        self.pars.increase_counter(I0, 'l2 solution', 1, 'D', D);
                     else
                         % TODO: does not work for find_x
                         pars_subsystem = Pars(D);
                         solver_subsystem = Solver(pars_subsystem);
                         x(I0) = solver_subsystem.min_effort(d);
-                        self.pars.solution_part(I0, 'get_u solution', 1, 'D', D);
+                        self.pars.increase_counter(I0, 'get_u solution', 1, 'D', D);
                     end
                 end
             end

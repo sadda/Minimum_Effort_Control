@@ -16,38 +16,31 @@ classdef Pars < handle
             for i = 1:length(s_fields)
                 self.(s_fields{i}) = s.(s_fields{i});
             end
+            self.analysis = {};
             self.analysis_i = 0;
         end
 
-        function solution_part(self, I0, text, varargin)
-            if isequal(self.analysis, [])
-                self.analysis_i = self.analysis_i + 1;
-                self.analysis = {self.create_new_struct(I0, text)};
-                self.update_self(1, varargin{:});
-            else
-                found = false;
-                for i = 1:length(self.analysis)
-                    if isequal(self.analysis{i}.I0, I0) && isequal(self.analysis{i}.text, text)
-                        found = true;
-                        break
-                    end
-                end
-                if found
-                    self.analysis_i = self.analysis_i + 1;
-                    self.update_self(i, varargin{:});
-                else
-                    self.analysis_i = self.analysis_i + 1;
-                    self.analysis = [self.analysis; self.create_new_struct(I0, text)];
-                    self.update_self(length(self.analysis), varargin{:});
+        function increase_counter(self, I0, text, varargin)
+            found = false;
+            for i = 1:length(self.analysis)
+                if isequal(self.analysis{i}.I0, I0) && isequal(self.analysis{i}.text, text)
+                    found = true;
+                    break
                 end
             end
+            if ~found                
+                self.analysis = [self.analysis; self.create_new_struct(I0, text)];
+                i = length(self.analysis);
+            end
+            self.analysis_i = self.analysis_i + 1;                
+            self.update_analysis_i(i, varargin{:});
         end
 
         function output = create_new_struct(~, I0, text)
             output = struct('I0', I0, 'text', text, 'count', 0, 'i', []);
         end
 
-        function update_self(self, i, varargin)
+        function update_analysis_i(self, i, varargin)
             self.analysis{i}.count = self.analysis{i}.count + 1;
             self.analysis{i}.i = [self.analysis{i}.i; self.analysis_i];
             if length(varargin) >= 1
@@ -59,7 +52,7 @@ classdef Pars < handle
                     if isfield(self.analysis{i}, varargin{2*j})
                         self.analysis{i}.(varargin{2*j}) = [self.analysis{i}.(varargin{2*j}); varargin{2*j+1}'];
                     else
-                        self.analysis{i}.(varargin{2*j}) = [varargin{2*j+1}'];
+                        self.analysis{i}.(varargin{2*j}) = varargin{2*j+1}';
                     end
                 end
             end
