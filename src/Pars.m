@@ -72,8 +72,8 @@ classdef Pars < handle
                 end
             end
             lines_color = lines(length(idx));
-            for i = idx
-                analysis_i = self.analysis{i};
+            for i = 1:length(lines_color)
+                analysis_i = self.analysis{idx(i)};
                 if isfield(analysis_i, 's_min')
                     j_start = 1;
                     j_end = 1;
