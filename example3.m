@@ -1,5 +1,3 @@
-% TODO: UDELAT SKRIPT Z MIN_EFFORT, KDE NEJSOU BLBOSTI
-
 clear all;
 close all;
 
