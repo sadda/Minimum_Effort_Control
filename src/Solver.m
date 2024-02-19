@@ -34,32 +34,12 @@ classdef Solver < handle
             % optimal_value (scalar): optimal value of the above problem.
             % self.pars (struct): contains information of how solutions were computed.
 
-            % Specify find_x if not provided
-            A = self.pars.A;
-            U = self.pars.U;
-            [~, n] = size(A);
-
-            % Compute the optimal dual solution
-            [optimal_value, i_max] = max(U*y);
-            u_opt = U(i_max, :)';
-
-            % Assign the index sets for complementarity
-            I0 = abs(A'*u_opt) <= self.tol;
-            I1 = A'*u_opt > self.tol;
-            I2 = A'*u_opt < -self.tol;
-
-            % Use the complementarity conditions to compute the primal solution
-            x = zeros(n,1);
-            x(I1) = optimal_value;
-            x(I2) = -optimal_value;
-
-            D = A(:,I0);
-            d = y - A(:,I1|I2)*x(I1|I2);
+            [x, I0, optimal_value, D, d] = self.solve_optimal_value(y);
 
             % We need to solve the following equation for x(I0)
             % D * x(I0) = d;
             rank_D = rank(D);
-            x_user = self.find_x(D, d, I0, optimal_value);
+            x_user = self.find_x(self, D, d, I0, optimal_value);
             if ~isequal(x_user, [])
                 % Use user-provided solution in present
                 x(I0) = x_user;
@@ -75,7 +55,7 @@ classdef Solver < handle
                 d = d(idx);
                 if size(D,1)+1 == size(D,2)
                     % Solve n*(n+1) system
-                    [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
+                    [x0, direction, s_min, s_max] = self.solve_n_n_plus_one_all_solutions(D, d, optimal_value);
                     x(I0) = x0 + 0.5*(s_min+s_max)*direction;
                     self.pars.solution_part(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
                 else
@@ -93,18 +73,126 @@ classdef Solver < handle
                 end
             end
 
+            x = self.expand_solution(x);
+            self.check_solution_quality(x, y, optimal_value);
+        end
+
+        function [x, optimal_value] = min_effort_user_provided(self, y)
+            [x, I0, optimal_value, D, d] = self.solve_optimal_value(y);
+            x(I0) = self.find_x(self, D, d, I0, optimal_value);
+            x = self.expand_solution(x);
+            self.check_solution_quality(x, y, optimal_value);
+        end
+
+        function [x, I0, optimal_value, D, d] = solve_optimal_value(self, y)
+            % Compute the optimal dual solution
+            [optimal_value, i_max] = max(self.pars.U*y);
+            u_opt = self.pars.U(i_max, :)';
+
+            % Assign the index sets for complementarity
+            A = self.pars.A;
+            [~, n] = size(A);
+            I0 = abs(A'*u_opt) <= self.tol;
+            I1 = A'*u_opt > self.tol;
+            I2 = A'*u_opt < -self.tol;
+
+            % Use the complementarity conditions to compute the primal solution
+            x = zeros(n,1);
+            x(I1) = optimal_value;
+            x(I2) = -optimal_value;
+
+            D = A(:,I0);
+            d = y - A(:,I1|I2)*x(I1|I2);
+        end
+
+        function x = solve_n_n_plus_one(self, A, b)
+            [m, n] = size(A);
+            rank_A = rank(A);
+            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
+            assert(rank_A == m, "Matrix A must have rank m.");
+
+            % Find the kernel and a particular solution
+            d = null(A);
+            x0 = A \ b;
+
+            % Find the solution
+            x = self.solution_min_norm(x0, d);
+        end
+
+        function x_opt = solution_min_norm(self, x0, d)
+            % Finds x = x0+s*d with minimal l_infty norm.
+            n = length(d);
+            val_opt = inf;
+            for i=1:n
+                for j=i+1:n
+                    if d(i) ~= d(j)
+                        s = (x0(j) - x0(i)) / (d(i) - d(j));
+                        val = max(abs(x0 + s*d));
+                        if val < val_opt
+                            val_opt = val;
+                            x_opt = x0 + s*d;
+                        end
+                    end
+                    if d(i) ~= -d(j)
+                        s = -(x0(j) + x0(i)) / (d(i) + d(j));
+                        val = max(abs(x0 + s*d));
+                        if val < val_opt
+                            val_opt = val;
+                            x_opt = x0 + s*d;
+                        end
+                    end
+                end
+            end
+        end
+
+        function [x0, d, s_min, s_max] = solve_n_n_plus_one_all_solutions(self, A, b, max_inf_norm)
+            [m, n] = size(A);
+            rank_A = rank(A);
+            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
+            assert(rank_A == m, "Matrix A must have rank m.");
+
+            % Find the kernel and a particular solution
+            d = null(A);
+            if d(1) ~= 0
+                d = d ./ d(1);
+                d = d ./ sign(d(1));
+            end
+            x0 = A \ b;
+
+            % Find the solution
+            [s_min, s_max] = self.solutions_prescribed_min_norm(x0, d, max_inf_norm);
+        end
+
+        function [s_min, s_max] = solutions_prescribed_min_norm(self, x0, d, max_inf_norm)
+            % Finds all solution x = x0+s*d with l_infty norm below max_inf_norm.
+            n = length(d);
+            s_min = -inf;
+            s_max = inf;
+            for i=1:n
+                if d(i) > 0
+                    s_min = max(s_min, (-max_inf_norm - x0(i)) / d(i));
+                    s_max = min(s_max, (max_inf_norm - x0(i)) / d(i));
+                else
+                    s_min = max(s_min, (max_inf_norm - x0(i)) / d(i));
+                    s_max = min(s_max, (-max_inf_norm - x0(i)) / d(i));
+                end
+            end
+        end
+
+        function x_expanded = expand_solution(self, x)
             % Expand the solution to the original space
             multiples = self.pars.multiples;
-            x2 = zeros(self.pars.n,1);
             idx = find(~self.pars.zero_columns);
             idx = idx(setdiff(1:length(idx), multiples(:,2)));
-            x2(idx) = x;
+            x_expanded = zeros(self.pars.n,1);
+            x_expanded(idx) = x;
             % Distribute the values into the multiples columns
             for k = 1:size(multiples,1)
-                x2(multiples(k,2)) = x2(multiples(k,1)) * sign(multiples(k,3));
+                x_expanded(multiples(k,2)) = x_expanded(multiples(k,1)) * sign(multiples(k,3));
             end
-            x = x2;
+        end
 
+        function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
             if norm(self.pars.A_original*x-y) > self.tol
                 throw("Problem was not solved");
