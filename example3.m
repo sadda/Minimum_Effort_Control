@@ -32,9 +32,7 @@ Tsim = 0.06;
 N = round(Tsim/dt) + 1;
 
 % Compute or load U
-file_name = 'data/pars_3.mat';
 pars = Pars(A);
-
 % solver = Solver(pars, @find_x_3);
 solver = Solver(pars);
 
