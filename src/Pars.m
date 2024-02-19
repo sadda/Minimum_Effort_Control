@@ -6,7 +6,7 @@ classdef Pars < handle
         zero_columns
         multiples
         analysis
-        analysis_i
+        analysis_counter
     end
 
     methods
@@ -17,7 +17,7 @@ classdef Pars < handle
                 self.(s_fields{i}) = s.(s_fields{i});
             end
             self.analysis = {};
-            self.analysis_i = 0;
+            self.analysis_counter = 0;
         end
 
         function increase_counter(self, I0, text, varargin)
@@ -32,7 +32,7 @@ classdef Pars < handle
                 self.analysis = [self.analysis; self.create_new_struct(I0, text)];
                 i = length(self.analysis);
             end
-            self.analysis_i = self.analysis_i + 1;
+            self.analysis_counter = self.analysis_counter + 1;
             self.update_analysis_i(i, varargin{:});
         end
 
@@ -42,7 +42,7 @@ classdef Pars < handle
 
         function update_analysis_i(self, i, varargin)
             self.analysis{i}.count = self.analysis{i}.count + 1;
-            self.analysis{i}.i = [self.analysis{i}.i; self.analysis_i];
+            self.analysis{i}.i = [self.analysis{i}.i; self.analysis_counter];
             if length(varargin) >= 1
                 n_constant = varargin{1};
                 for j = 1:n_constant
@@ -128,13 +128,13 @@ classdef Pars < handle
                                     fprintf('Pseudoinverse of D\n');
                                     disp(f2.D_pse)
                                 end
-                                if isfield(f2, 'idx')
+                                if isfield(f2, 'D_idx')
                                     fprintf('Kept indices of D\n');
-                                    disp(f2.idx)
+                                    disp(f2.D_idx)
                                 end
-                                if isfield(f2, 'v')
+                                if isfield(f2, 'D_v')
                                     fprintf('Null space of D\n');
-                                    disp(f2.v)
+                                    disp(f2.D_v)
                                 end
                             end
                         end

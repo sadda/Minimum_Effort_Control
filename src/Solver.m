@@ -44,7 +44,7 @@ classdef Solver < handle
                 % The simple case when it is well-conditioned
                 x(I0) = D \ d;
                 [~, idx] = rref(D');
-                self.pars.increase_counter(I0, 'unique solution', 3, 'idx', idx, 'D', D, 'D_pse', inv(D(idx,:)));
+                self.pars.increase_counter(I0, 'unique solution', 3, 'D', D, 'D_pse', inv(D(idx,:)), 'D_idx', idx);
             else
                 % Reduce the system to the necessary equations only. Rank of D is still m.
                 [~, idx] = rref(D');
@@ -54,7 +54,7 @@ classdef Solver < handle
                     % Solve n*(n+1) system
                     [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions_matrix_form(D, d, optimal_value);
                     x(I0) = x0 + 0.5*(s_min+s_max)*v;
-                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
+                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'D', D, 'D_pse', D'/(D*D'), 'D_idx', idx, 'D_v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
                 else
                     % Try l2 solution with reduced ranks
                     x(I0) = D' * ((D * D') \ d);
