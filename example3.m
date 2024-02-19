@@ -33,15 +33,8 @@ N = round(Tsim/dt) + 1;
 
 % Compute or load U
 file_name = 'data/pars_3.mat';
-if ~isfile(file_name)
-    pars = Pars(A);
-    if ~isfolder('data')
-        mkdir('data');
-    end
-    save(file_name, "pars");
-else
-    load(file_name, "pars");
-end
+pars = Pars(A);
+
 % solver = Solver(pars, @find_x_3);
 solver = Solver(pars);
 
@@ -73,15 +66,15 @@ y_lim = 0.8;
 % set(gcf, 'Position', get(0, 'Screensize'));
 % subplot(2,2,1);
 % plot(o_t, o_y, 'LineWidth', 3); grid on;
-% 
+%
 % subplot(2,2,2);
 % plot(o_t, [o_x(:,1),o_x(:,2),o_x(:,3)], 'LineWidth', 3); grid on;
 % ylim([-y_lim,y_lim]);
-% 
+%
 % subplot(2,2,3);
 % plot(o_t, [o_x(:,4),o_x(:,5),o_x(:,6)], 'LineWidth', 3); grid on;
 % ylim([-y_lim,y_lim]);
-% 
+%
 % subplot(2,2,4);
 % plot(o_t, [o_x(:,7),o_x(:,8),o_x(:,9)], 'LineWidth', 3); grid on;
 % ylim([-y_lim,y_lim]);
