@@ -1,4 +1,4 @@
-function [x, optimal_value, pars] = min_effort(pars, y, find_x)
+function [x, optimal_value] = min_effort(pars, y, find_x)
     % min_effort Our algorithm for solving the minimum effort problem
     %    minimize     ||x||_infty
     %    subject to   pars.A_original * x = y
@@ -47,11 +47,11 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
     if ~isequal(x_user, [])
         % Use user-provided solution in present
         x(I0) = x_user;
-        pars = solution_part(pars, I0, 'user-specified solution');
+        pars.solution_part(I0, 'user-specified solution');
     elseif rank_D == size(D, 2)
         % The simple case when it is well-conditioned
         x(I0) = D \ d;
-        pars = solution_part(pars, I0, 'unique solution', 1, 'D', D);
+        pars.solution_part(I0, 'unique solution', 1, 'D', D);
     else
         % Reduce the system to the necessary equations only. Rank of D is still m.
         [~, idx] = rref(D');
@@ -61,17 +61,17 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
             % Solve n*(n+1) system
             [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
             x(I0) = x0 + 0.5*(s_min+s_max)*direction;
-            pars = solution_part(pars, I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
+            pars.solution_part(I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
         else
             % Try l2 solution with reduced ranks
             x(I0) = D' * ((D * D') \ d);
             if max(abs(x)) <= optimal_value + tol
-                pars = solution_part(pars, I0, 'l2 solution', 1, 'D', D);
+                pars.solution_part(I0, 'l2 solution', 1, 'D', D);
             else
                 % TODO: does not work for find_x
-                pars_subsystem = get_u(D);
+                pars_subsystem = Pars(D);
                 x(I0) = min_effort(pars_subsystem, d, find_x);
-                pars = solution_part(pars, I0, 'get_u solution', 1, 'D', D);
+                pars.solution_part(I0, 'get_u solution', 1, 'D', D);
             end
         end
     end
@@ -99,51 +99,4 @@ end
 
 
 
-function pars = solution_part(pars, I0, text, varargin)
-    if pars.analysis_update
-        if ~isfield(pars, 'analysis')
-            pars.analysis_i = pars.analysis_i + 1;
-            pars.analysis = {create_new_struct(I0, text)};
-            pars = update_pars(pars, 1, varargin{:});
-        else
-            found = false;
-            for i = 1:length(pars.analysis)
-                if isequal(pars.analysis{i}.I0, I0) && isequal(pars.analysis{i}.text, text)
-                    found = true;
-                    break
-                end
-            end
-            if found
-                pars.analysis_i = pars.analysis_i + 1;
-                pars = update_pars(pars, i, varargin{:});
-            else
-                pars.analysis_i = pars.analysis_i + 1;
-                pars.analysis = [pars.analysis; create_new_struct(I0, text)];
-                pars = update_pars(pars, length(pars.analysis), varargin{:});
-            end
-        end
-    end
-end
-
-function output = create_new_struct(I0, text)
-    output = struct('I0', I0, 'text', text, 'count', 0, 'i', []);
-end
-
-function pars = update_pars(pars, i, varargin)
-    pars.analysis{i}.count = pars.analysis{i}.count + 1;
-    pars.analysis{i}.i = [pars.analysis{i}.i; pars.analysis_i];
-    if length(varargin) >= 1
-        n_constant = varargin{1};
-        for j = 1:n_constant
-            pars.analysis{i}.(varargin{2*j}) = varargin{2*j+1};
-        end
-        for j = n_constant+1:(length(varargin)-1)/2
-            if isfield(pars.analysis{i}, varargin{2*j})
-                pars.analysis{i}.(varargin{2*j}) = [pars.analysis{i}.(varargin{2*j}); varargin{2*j+1}'];
-            else
-                pars.analysis{i}.(varargin{2*j}) = [varargin{2*j+1}'];
-            end
-        end
-    end
-end
 
