@@ -28,11 +28,11 @@ classdef Pars < handle
                     break
                 end
             end
-            if ~found                
+            if ~found
                 self.analysis = [self.analysis; self.create_new_struct(I0, text)];
                 i = length(self.analysis);
             end
-            self.analysis_i = self.analysis_i + 1;                
+            self.analysis_i = self.analysis_i + 1;
             self.update_analysis_i(i, varargin{:});
         end
 
@@ -53,6 +53,45 @@ classdef Pars < handle
                         self.analysis{i}.(varargin{2*j}) = [self.analysis{i}.(varargin{2*j}); varargin{2*j+1}'];
                     else
                         self.analysis{i}.(varargin{2*j}) = varargin{2*j+1}';
+                    end
+                end
+            end
+        end
+
+        function plot_s_min_s_max(self, x_scale, varargin)
+            if nargin < 2
+                x_scale = 1;
+            end
+            figure();
+            hold on;
+            idx = [];
+            for i = 1:length(self.analysis)
+                analysis_i = self.analysis{i};
+                if isfield(analysis_i, 's_min')
+                    idx = [idx, i];
+                end
+            end
+            lines_color = lines(length(idx));
+            for i = idx
+                analysis_i = self.analysis{i};
+                if isfield(analysis_i, 's_min')
+                    j_start = 1;
+                    j_end = 1;
+                    while j_start <= length(analysis_i.i)
+                        if j_end < length(analysis_i.i) && analysis_i.i(j_end + 1) == analysis_i.i(j_end) + 1
+                            j_end = j_end + 1;
+                        else
+                            jdx = j_start:j_end;
+                            if length(jdx) > 1
+                                plot(x_scale*analysis_i.i(jdx), [analysis_i.s_min(jdx), analysis_i.s_max(jdx)], 'color', lines_color(i,:), varargin{:});
+                                plot(x_scale*analysis_i.i(jdx), 0.5*(analysis_i.s_min(jdx)+analysis_i.s_max(jdx)), '--', 'color', lines_color(i,:));
+                            else
+                                scatter(x_scale*analysis_i.i(jdx), [analysis_i.s_min(jdx), analysis_i.s_max(jdx)], [], lines_color(i,:), '.');
+                                scatter(x_scale*analysis_i.i(jdx), 0.5*(analysis_i.s_min(jdx)+analysis_i.s_max(jdx)), [], lines_color(i,:), '.');
+                            end
+                            j_start = j_end + 1;
+                            j_end = j_start;
+                        end
                     end
                 end
             end
