@@ -43,7 +43,8 @@ classdef Solver < handle
             elseif rank(D) == size(D, 2)
                 % The simple case when it is well-conditioned
                 x(I0) = D \ d;
-                self.pars.increase_counter(I0, 'unique solution', 1, 'D', D);
+                [~, idx] = rref(D');
+                self.pars.increase_counter(I0, 'unique solution', 3, 'idx', idx, 'D', D, 'D_pse', inv(D(idx,:)));
             else
                 % Reduce the system to the necessary equations only. Rank of D is still m.
                 [~, idx] = rref(D');
