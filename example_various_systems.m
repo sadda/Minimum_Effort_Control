@@ -187,14 +187,15 @@ for j = 1:18
     if isfile(file_name)
         load(file_name, "pars");
     else
-        pars = get_u(A);
+        pars = Pars(A);
         save(file_name, "pars");
     end
+    solver = Solver(pars);
     [n_y, n_x] = size(A);
 
     xs = zeros(n_x, n_t);
     for k = 1:n_t
-        [xs(:,k), ~, pars] = min_effort(pars, ys(:,k));
+        xs(:,k) = solver.min_effort(ys(:,k));
     end
 
     ylims = 1.1*[-max(xs(:)); max(xs(:))];
@@ -214,7 +215,7 @@ for j = 1:18
     title('Our approach');
     ylim(ylims);
 
-    analyze_solution(pars);
+    pars.analyze_solution();
 end
 
 

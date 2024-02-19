@@ -1,4 +1,4 @@
-function x = find_x_3(~, d, I0, max_inf_norm)
+function x = find_x_3(solver, ~, d, I0, max_inf_norm)
     if isequal(I0, logical([0;1;0;1;0;1]))
         direction = [1; 1; -2];
         D_pse = [
@@ -7,9 +7,7 @@ function x = find_x_3(~, d, I0, max_inf_norm)
             0   0.288675134594813;
             ];
         idx = [1; 2];
-        x0 = D_pse * d(idx);
-        [s_min, s_max] = solutions_prescribed_min_norm(x0, direction, max_inf_norm);
-        x = x0 + 0.5*(s_min+s_max)*direction;
+        x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm);
     elseif isequal(I0, logical([1;0;0;1;1;0]))
         direction = [1; -1; -2];
         D_pse = [
@@ -18,9 +16,7 @@ function x = find_x_3(~, d, I0, max_inf_norm)
             0.250000000000000  -0.144337567297406;
             ];
         idx = [1; 2];
-        x0 = D_pse * d(idx);
-        [s_min, s_max] = solutions_prescribed_min_norm(x0, direction, max_inf_norm);
-        x = x0 + 0.5*(s_min+s_max)*direction;
+        x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm);
     elseif isequal(I0, logical([1;1;1;0;0;0]))
         direction = [1; 1; 2];
         D_pse = [
@@ -29,9 +25,7 @@ function x = find_x_3(~, d, I0, max_inf_norm)
             -0.250000000000000  -0.144337567297406;
             ];
         idx = [1; 2];
-        x0 = D_pse * d(idx);
-        [s_min, s_max] = solutions_prescribed_min_norm(x0, direction, max_inf_norm);
-        x = x0 + 0.5*(s_min+s_max)*direction;
+        x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm);
     elseif isequal(I0, logical([0;0;1;0;1;1]))
         direction = [1; 1; 1];
         D_pse = [
@@ -40,9 +34,7 @@ function x = find_x_3(~, d, I0, max_inf_norm)
             0   0.577350269189626;
             ];
         idx = [1; 2];
-        x0 = D_pse * d(idx);
-        [s_min, s_max] = solutions_prescribed_min_norm(x0, direction, max_inf_norm);
-        x = x0 + 0.5*(s_min+s_max)*direction;
+        x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm);
     elseif length(I0) == 6
         throw('The case above is not handled.')
     else
@@ -50,3 +42,8 @@ function x = find_x_3(~, d, I0, max_inf_norm)
     end
 end
 
+function x = find_solution(solver, D_pse, d, idx, direction, max_inf_norm)
+    x0 = D_pse * d(idx);
+    [s_min, s_max] = solver.n_n_plus_one_all_solutions(x0, direction, max_inf_norm);
+    x = x0 + 0.5*(s_min+s_max)*direction;
+end

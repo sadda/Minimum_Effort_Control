@@ -34,7 +34,7 @@ N = round(Tsim/dt) + 1;
 % Compute or load U
 file_name = 'data/pars_3.mat';
 if ~isfile(file_name)
-    pars = get_u(A);
+    pars = Pars(A);
     if ~isfolder('data')
         mkdir('data');
     end
@@ -42,6 +42,8 @@ if ~isfile(file_name)
 else
     load(file_name, "pars");
 end
+% solver = Solver(pars, @find_x_3);
+solver = Solver(pars);
 
 for k = 1:N
     wt = w*t;
@@ -56,9 +58,8 @@ for k = 1:N
         uc = 0;
     end
     y = A1*[ua;ub;uc];
-
-    [x, ~, pars] = min_effort(pars, y, @find_x_3);
-    %[x, ~, pars] = min_effort(pars, y, []);
+    x = solver.min_effort(y);
+    % x = solver.min_effort_user_provided(y);
 
     o_t(k,1) = t;
     o_y(k,:) = y';

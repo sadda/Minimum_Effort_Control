@@ -23,7 +23,7 @@ end
 
 %% Output: Precompute set U
 
-pars = get_u(A);
+pars = Pars(A);
 
 %% Output: Get a solution for every time
 
