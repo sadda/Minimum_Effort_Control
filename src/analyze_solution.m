@@ -1,4 +1,7 @@
-function analyze_solution(pars)
+function analyze_solution(pars, full_print)
+    if nargin < 2
+        full_print = false;
+    end
     fprintf('The original matrix:\n')
     disp(pars.A_original)
     fprintf('The reduced matrix:\n')
@@ -20,6 +23,20 @@ function analyze_solution(pars)
                     if isfield(f2, 'D')
                         fprintf('Solving system Dx=d with D with rank %d\n', rank(f2.D));
                         disp(f2.D)
+                    end
+                    if full_print
+                        if isfield(f2, 'D_pse')
+                            fprintf('Pseudoinverse of D\n');
+                            disp(f2.D_pse)
+                        end
+                        if isfield(f2, 'idx')
+                            fprintf('Kept indices of D\n');
+                            disp(f2.idx)
+                        end
+                        if isfield(f2, 'idx')
+                            fprintf('Null space of D\n');
+                            disp(f2.direction)
+                        end                        
                     end
                 end
             end

@@ -61,7 +61,7 @@ function [x, optimal_value, pars] = min_effort(pars, y, find_x)
             % Solve n*(n+1) system
             [x0, direction, s_min, s_max] = solve_n_n_plus_one_all_solutions(D, d, optimal_value);
             x(I0) = x0 + 0.5*(s_min+s_max)*direction;
-            pars = solution_part(pars, I0, 'n*(n+1) system solution', 2, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
+            pars = solution_part(pars, I0, 'n*(n+1) system solution', 4, 'idx', idx, 'D', D, 'D_pse', D'/(D*D'), 'direction', direction, 'x0', x0, 's_min', s_min, 's_max', s_max);
         else
             % Try l2 solution with reduced ranks
             x(I0) = D' * ((D * D') \ d);
