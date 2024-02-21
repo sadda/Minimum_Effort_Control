@@ -31,8 +31,8 @@ N = round(Tsim/dt) + 1;
 
 % Compute or load U
 pars = Pars(A);
-% solver = Solver(pars, @find_x_3);
-solver = Solver(pars);
+solver = Solver(pars, @find_x_3);
+% solver = Solver(pars);
 
 for k = 1:N
     wt = w*t;
@@ -47,8 +47,8 @@ for k = 1:N
         uc = 0;
     end
     y = A1*[ua;ub;uc];
-    x = solver.min_effort(y);
-    % x = solver.min_effort_user_provided(y);
+    % x = solver.min_effort(y);
+    x = solver.min_effort_user_provided(y);
 
     o_t(k,1) = t;
     o_y(k,:) = y';
