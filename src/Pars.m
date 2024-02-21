@@ -20,15 +20,19 @@ classdef Pars < handle
             self.analysis_counter = 0;
         end
 
-        function increase_counter(self, I0, text, varargin)
-            found = false;
+        function i_found = analysis_get_i(self, I0, text)
+            i_found = -1;
             for i = 1:length(self.analysis)
                 if isequal(self.analysis{i}.I0, I0) && isequal(self.analysis{i}.text, text)
-                    found = true;
+                    i_found = i;
                     break
                 end
             end
-            if ~found
+        end
+
+        function increase_counter(self, I0, text, varargin)
+            i = self.analysis_get_i(I0, text);
+            if i < 0
                 self.analysis = [self.analysis; self.create_new_struct(I0, text)];
                 i = length(self.analysis);
             end
