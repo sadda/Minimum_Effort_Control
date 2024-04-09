@@ -35,11 +35,15 @@ classdef Solver < handle
 
             % We need to solve the following equation for x(I0)
             % D * x(I0) = d;
+            counter = self.pars.analysis_counter;
             x_user = self.find_x(self, D, d, I0, optimal_value);
             if ~isequal(x_user, [])
                 % Use user-provided solution in present
                 x(I0) = x_user;
-                self.pars.increase_counter(I0, 'user-specified solution');
+                if counter == self.pars.analysis_counter
+                    % The user-provided solution did not do any logging
+                    self.pars.increase_counter(I0, 'user-specified solution');
+                end
             elseif rank(D) == size(D, 2)
                 % The simple case when it is well-conditioned
                 x(I0) = D \ d;
