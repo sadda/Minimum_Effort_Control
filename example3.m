@@ -58,28 +58,12 @@ end
 
 y_lim = 0.8;
 
-% figure;
-% set(gcf, 'Position', get(0, 'Screensize'));
-% subplot(2,2,1);
-% plot(o_t, o_y, 'LineWidth', 3); grid on;
-%
-% subplot(2,2,2);
-% plot(o_t, [o_x(:,1),o_x(:,2),o_x(:,3)], 'LineWidth', 3); grid on;
-% ylim([-y_lim,y_lim]);
-%
-% subplot(2,2,3);
-% plot(o_t, [o_x(:,4),o_x(:,5),o_x(:,6)], 'LineWidth', 3); grid on;
-% ylim([-y_lim,y_lim]);
-%
-% subplot(2,2,4);
-% plot(o_t, [o_x(:,7),o_x(:,8),o_x(:,9)], 'LineWidth', 3); grid on;
-% ylim([-y_lim,y_lim]);
-
-figure;
+fig = figure;
 plot(o_t, [o_x(:,1),o_x(:,2),o_x(:,3)], 'LineWidth', 3); grid on;
 ylim([-y_lim,y_lim]);
 xlim([0,Tsim]);
 set(gcf, 'Position', get(0, 'Screensize'));
+% exportgraphics(fig, 'Res3.png', 'Resolution', 600)
 
 pars.plot_s_min_s_max(dt, 'LineWidth', 3)
 xlim([0,Tsim]);
