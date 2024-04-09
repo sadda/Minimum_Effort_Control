@@ -18,7 +18,7 @@ function x = find_x_3(solver, D, d, I0, max_inf_norm)
         idx = [1; 2];
         x = find_solution(solver, I0, D, D_pse, d, idx, direction, max_inf_norm);
     elseif isequal(I0, logical([1;1;1;0;0;0]))
-        direction = [1; 1; 2];
+        direction = [-1; -1; -2];
         D_pse = [
             0.625000000000000  -0.505181485540922;
             -0.125000000000000   0.793856620135735;
