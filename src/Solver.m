@@ -53,8 +53,9 @@ classdef Solver < handle
                 if size(D,1)+1 == size(D,2)
                     % Solve n*(n+1) system
                     [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions_matrix_form(D, d, optimal_value);
-                    x(I0) = x0 + 0.5*(s_min+s_max)*v;
-                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'D', D, 'D_pse', D'/(D*D'), 'D_idx', idx, 'D_v', v, 'x0', x0, 's_min', s_min, 's_max', s_max);
+                    s = 0.5*(s_min+s_max);
+                    x(I0) = x0 + s*v;
+                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'D', D, 'D_pse', D'/(D*D'), 'D_idx', idx, 'D_v', v, 'x0', x0, 's', s, 's_min', s_min, 's_max', s_max);
                 else
                     % Try l2 solution with reduced ranks
                     x(I0) = D' * ((D * D') \ d);
