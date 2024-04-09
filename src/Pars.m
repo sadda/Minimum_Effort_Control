@@ -6,6 +6,7 @@ classdef Pars < handle
         zero_columns
         multiples
         analysis
+        analysis_full
         analysis_counter
     end
 
@@ -17,6 +18,7 @@ classdef Pars < handle
                 self.(s_fields{i}) = s.(s_fields{i});
             end
             self.analysis = {};
+            self.analysis_full = struct('i', []);
             self.analysis_counter = 0;
         end
 
@@ -66,6 +68,7 @@ classdef Pars < handle
         function update_analysis_i(self, i, varargin)
             self.analysis{i}.count = self.analysis{i}.count + 1;
             self.analysis{i}.i = [self.analysis{i}.i; self.analysis_counter];
+            self.analysis_full.i = [self.analysis_full.i; i];
             if length(varargin) >= 1
                 n_constant = varargin{1};
                 for j = 1:n_constant
@@ -77,6 +80,13 @@ classdef Pars < handle
                     else
                         self.analysis{i}.(varargin{2*j}) = varargin{2*j+1}';
                     end
+                    n_varargin = length(varargin{2*j+1});
+                    if ~isfield(self.analysis_full, varargin{2*j})
+                        self.analysis_full.(varargin{2*j}) = zeros(0, n_varargin);
+                    end
+                    n_logged = size(self.analysis_full.(varargin{2*j}), 1);
+                    self.analysis_full.(varargin{2*j}) = [self.analysis_full.(varargin{2*j}); nan(self.analysis_counter-n_logged-1, n_varargin)];
+                    self.analysis_full.(varargin{2*j}) = [self.analysis_full.(varargin{2*j}); varargin{2*j+1}'];
                 end
             end
         end
