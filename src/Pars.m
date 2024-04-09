@@ -20,6 +20,25 @@ classdef Pars < handle
             self.analysis_counter = 0;
         end
 
+        function x_new = expand_solution(self, x)
+            % Expand the solution to the original space
+            idx = find(~self.zero_columns);
+            idx = idx(setdiff(1:length(idx), self.multiples(:,2)));
+            x_new = zeros(size(self.A_original,2),1);
+            x_new(idx) = x;
+            % Distribute the values into the multiples columns
+            for k = 1:size(self.multiples,1)
+                x_new(self.multiples(k,2)) = x_new(self.multiples(k,1)) * sign(self.multiples(k,3));
+            end
+        end
+
+        function x_new = shrink_solution(self, x)
+            % Shrink the solution to the reduced space
+            idx = find(~self.zero_columns);
+            idx = idx(setdiff(1:length(idx), self.multiples(:,2)));
+            x_new = x(idx);
+        end
+
         function i_found = analysis_get_i(self, I0, text)
             i_found = -1;
             for i = 1:length(self.analysis)
