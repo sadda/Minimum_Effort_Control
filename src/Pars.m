@@ -91,15 +91,14 @@ classdef Pars < handle
             end
         end
 
-        function plot_s_min_s_max(self, x_scale, varargin)
+        function fig = plot_s_min_s_max(self, x_scale, varargin)
+            fig = figure();
             if ~isfield(self.analysis_full, 's_min')
-                figure();
                 return;
             end
             if nargin < 2
                 x_scale = 1;
             end
-            figure();
             hold on;
             idx = unique(self.analysis_full.i);
             lines_color = lines(length(idx));
@@ -113,7 +112,7 @@ classdef Pars < handle
                     color = lines_color(idx==self.analysis_full.i(j_end),:);
                     if length(jdx) > 1
                         plot(x_scale*jdx, [self.analysis_full.s_min(jdx), self.analysis_full.s_max(jdx)], 'color', color, varargin{:});
-                        plot(x_scale*jdx, 0.5*(self.analysis_full.s_min(jdx)+self.analysis_full.s_max(jdx)), '--', 'color', color);
+                        plot(x_scale*jdx, 0.5*(self.analysis_full.s_min(jdx)+self.analysis_full.s_max(jdx)), '--', 'color', color, varargin{:});
                     else
                         scatter(x_scale*jdx, [self.analysis_full.s_min(jdx), self.analysis_full.s_max(jdx)], [], color, '.');
                         scatter(x_scale*jdx, 0.5*(self.analysis_full.s_min(jdx)+self.analysis_full.s_max(jdx)), [], color, '.');
