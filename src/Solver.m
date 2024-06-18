@@ -75,14 +75,14 @@ classdef Solver < handle
                 end
             end
 
-            x = self.expand_solution(x);
+            x = self.pars.expand_solution(x);
             self.check_solution_quality(x, y, optimal_value);
         end
 
         function [x, optimal_value] = min_effort_user_provided(self, y)
             [x, I0, optimal_value, D, d] = self.duality_solution(y);
             x(I0) = self.find_x(self, D, d, I0, optimal_value);
-            x = self.expand_solution(x);
+            x = self.pars.expand_solution(x);
             self.check_solution_quality(x, y, optimal_value);
         end
 
@@ -174,19 +174,6 @@ classdef Solver < handle
                     s_min = max(s_min, (max_inf_norm - x0(i)) / v(i));
                     s_max = min(s_max, (-max_inf_norm - x0(i)) / v(i));
                 end
-            end
-        end
-
-        function x_expanded = expand_solution(self, x)
-            % Expand the solution to the original space
-            multiples = self.pars.multiples;
-            idx = find(~self.pars.zero_columns);
-            idx = idx(setdiff(1:length(idx), multiples(:,2)));
-            x_expanded = zeros(size(self.pars.A_original,2),1);
-            x_expanded(idx) = x;
-            % Distribute the values into the multiples columns
-            for k = 1:size(multiples,1)
-                x_expanded(multiples(k,2)) = x_expanded(multiples(k,1)) * sign(multiples(k,3));
             end
         end
 
