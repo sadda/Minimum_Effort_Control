@@ -27,10 +27,18 @@ classdef Solver < handle
             pars = self.pars; %#ok<*PROPLC>
             if pars.A_case == 1
                 x = pars.D * y;
-            elseif pars.A_case  == 2
-                % TODO: implement
-                error('not implemented yet');
-            elseif pars.A_case  == 3
+            elseif pars.A_case == 2
+                if pars.A_subcase == 1
+                    x = pars.D * y;
+                    x = x - 0.5*(min(x)+max(x));
+                    optimal_value = max(abs(x));
+                elseif pars.A_subcase == 2
+                    % TODO: implement
+                    error('not implemented yet');
+                else
+                    error('case not known');
+                end
+            elseif pars.A_case == 3
                 [optimal_value, i_max] = max(self.pars.U*y);
 
                 I = pars.I{i_max};
@@ -45,9 +53,9 @@ classdef Solver < handle
                 d = y - pars.d_vec{i_max}*optimal_value;
                 d = d(pars.idx{i_max});
 
-                if pars.A_case3{i_max} == 1
-                    x(I) = pars.Ds{i_max}*d;
-                elseif pars.A_case3{i_max} == 2
+                if pars.A_subcase{i_max} == 1
+                    x(I) = pars.D{i_max}*d;
+                elseif pars.A_subcase{i_max} == 2
                     % TODO: handle any a_i=0
                     u = pars.D{i_max}*d;
                     a = pars.a{i_max};
@@ -57,7 +65,7 @@ classdef Solver < handle
                         error('s_min larger than s_max');
                     end
                     x(I) = u + 0.5*(s_min+s_max)*a;
-                elseif pars.A_case3{i_max} == 3
+                elseif pars.A_subcase{i_max} == 3
                     % TODO: implement
                     error('not implemented yet');
                 else

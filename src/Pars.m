@@ -1,8 +1,9 @@
 classdef Pars < handle
     properties
-        A_case;
         A;
         n;
+        A_case;
+        A_subcase = {};
         zero_columns;
         multiples;
         multiples_counts;
@@ -14,7 +15,6 @@ classdef Pars < handle
         K = {};
         idx = {};
         d_vec = {};
-        A_case3 = {};
     end
 
     methods
@@ -61,6 +61,11 @@ classdef Pars < handle
                 self.A_case = 2;
                 self.D = A' / (A*A');
                 self.a = null(A);
+                if norm(self.a - mean(self.a)) < tol
+                    self.A_subcase = 1;
+                else
+                    self.A_subcase = 2;
+                end
             else
                 % TODO: remove symmetric elements
                 self.A_case = 3;
@@ -79,10 +84,10 @@ classdef Pars < handle
                     end
 
                     if n_I == m_I
-                        self.A_case3{i} = 1;
+                        self.A_subcase{i} = 1;
                         self.D{i} = inv(A_I);
                     elseif n_I == m_I + 1
-                        self.A_case3{i} = 2;
+                        self.A_subcase{i} = 2;
                         self.D{i} = A_I' / (A_I*A_I');
                         self.a{i} = null(A_I);
                     else
