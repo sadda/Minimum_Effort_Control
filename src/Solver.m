@@ -1,21 +1,16 @@
 classdef Solver < handle
     properties
         pars
-        find_x
         tol
     end
 
     methods
-        function self = Solver(pars, find_x, tol)
-            if nargin < 3
+        function self = Solver(pars, tol)
+            if nargin < 2
                 tol = 1e-10;
-            end
-            if nargin < 2 || isequal(find_x, [])
-                find_x = @(varargin) [];
             end
 
             self.pars = pars;
-            self.find_x = find_x;
             self.tol = tol;
         end
 
@@ -31,80 +26,50 @@ classdef Solver < handle
             % x (vector): optimal solution of the above problem.
             % optimal_value (scalar): optimal value of the above problem.
 
-            [x, I0, optimal_value, D, d] = self.duality_solution(y);
+            pars = self.pars; %#ok<*PROPLC>
+            if pars.A_case == 1
+                x = pars.D * y;
+            elseif pars.A_case  == 2
+                % TODO: implement
+                error('not implemented yet');
+            elseif pars.A_case  == 3
+                [optimal_value, i_max] = max(self.pars.U*y);
 
-            % We need to solve the following equation for x(I0)
-            % D * x(I0) = d;
-            counter = self.pars.analysis_counter;
-            x_user = self.find_x(self, D, d, I0, optimal_value);
-            if ~isequal(x_user, [])
-                % Use user-provided solution in present
-                x(I0) = x_user;
-                if counter == self.pars.analysis_counter
-                    % The user-provided solution did not do any logging
-                    self.pars.increase_counter(I0, 'user-specified solution');
-                end
-            elseif rank(D) == size(D, 2)
-                % The simple case when it is well-conditioned
-                x(I0) = D \ d;
-                [~, idx] = rref(D');
-                self.pars.increase_counter(I0, 'unique solution', 3, 'D', D, 'D_pse', inv(D(idx,:)), 'D_idx', idx);
-            else
-                % Reduce the system to the necessary equations only. Rank of D is still m.
-                [~, idx] = rref(D');
-                D = D(idx, :);
-                d = d(idx);
-                if size(D,1)+1 == size(D,2)
-                    % Solve n*(n+1) system
-                    [x0, v, s_min, s_max] = self.n_n_plus_one_all_solutions_matrix_form(D, d, optimal_value);
-                    s = 0.5*(s_min+s_max);
-                    x(I0) = x0 + s*v;
-                    self.pars.increase_counter(I0, 'n*(n+1) system solution', 4, 'D', D, 'D_pse', D'/(D*D'), 'D_idx', idx, 'D_v', v, 'x0', x0, 's', s, 's_min', s_min, 's_max', s_max);
-                else
-                    % Try l2 solution with reduced ranks
-                    x(I0) = D' * ((D * D') \ d);
-                    if max(abs(x)) <= optimal_value + self.tol
-                        self.pars.increase_counter(I0, 'l2 solution', 1, 'D', D);
-                    else
-                        % TODO: does not work for find_x
-                        pars_subsystem = Pars(D);
-                        solver_subsystem = Solver(pars_subsystem);
-                        x(I0) = solver_subsystem.min_effort(d);
-                        self.pars.increase_counter(I0, 'get_u solution', 1, 'D', D);
+                I = pars.I{i_max};
+                J = pars.J{i_max};
+                K = pars.K{i_max};
+
+                % Use the complementarity conditions to compute the primal solution
+                x = zeros(size(pars.A, 2), 1);
+                x(J) = optimal_value;
+                x(K) = -optimal_value;
+
+                d = y - pars.d_vec{i_max}*optimal_value;
+                d = d(pars.idx{i_max});
+
+                if pars.A_case3{i_max} == 1
+                    x(I) = pars.Ds{i_max}*d;
+                elseif pars.A_case3{i_max} == 2
+                    % TODO: handle any a_i=0
+                    u = pars.D{i_max}*d;
+                    a = pars.a{i_max};
+                    s_max = max(-optimal_value./abs(a) - u./a);
+                    s_min = min(optimal_value./abs(a) - u./a);
+                    if s_min < s_max
+                        error('s_min larger than s_max');
                     end
+                    x(I) = u + 0.5*(s_min+s_max)*a;
+                elseif pars.A_case3{i_max} == 3
+                    % TODO: implement
+                    error('not implemented yet');
+                else
+                    error('case not known');
                 end
+            else
+                error('case not known');
             end
-
             x = self.pars.expand_solution(x);
-            self.check_solution_quality(x, y, optimal_value);
-        end
-
-        function [x, optimal_value] = min_effort_user_provided(self, y)
-            [x, I0, optimal_value, D, d] = self.duality_solution(y);
-            x(I0) = self.find_x(self, D, d, I0, optimal_value);
-            x = self.pars.expand_solution(x);
-            self.check_solution_quality(x, y, optimal_value);
-        end
-
-        function [x, I0, optimal_value, D, d] = duality_solution(self, y)
-            % Compute the optimal dual solution
-            [optimal_value, i_max] = max(self.pars.U*y);
-            u_opt = self.pars.U(i_max, :)';
-
-            % Assign the index sets for complementarity
-            A = self.pars.A;
-            [~, n] = size(A);
-            I0 = abs(A'*u_opt) <= self.tol;
-            I1 = A'*u_opt > self.tol;
-            I2 = A'*u_opt < -self.tol;
-
-            % Use the complementarity conditions to compute the primal solution
-            x = zeros(n,1);
-            x(I1) = optimal_value;
-            x(I2) = -optimal_value;
-
-            D = A(:,I0);
-            d = y - A(:,I1|I2)*x(I1|I2);
+            %self.check_solution_quality(x, y, optimal_value);
         end
 
         function x = n_n_plus_one_min_norm_solution_matrix_form(self, A, b)

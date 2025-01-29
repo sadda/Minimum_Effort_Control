@@ -1,4 +1,4 @@
-function pars = get_u(A)
+function U = get_u(A)
     % get_u Computes the set of extremal points of the dual feasible set
     %    ||A'*u|| <= 1
     %
@@ -8,22 +8,7 @@ function pars = get_u(A)
     % Outputs:
     % U (matrix): extremal points of the dual feasible set.
     
-    tol = 1e-10;
-    A_original = A;
-    
-    % Find zeros columns
-    zero_columns = vecnorm(A) <= tol;
-    A = A(:, ~zero_columns);
-
-    % Find columns which are multiples of each other
-    [multiples, multiples_counts] = find_column_multiples(A);
-    % Multiply the columns which are multiplied
-    for i = 1:size(multiples_counts,1)
-        k = multiples_counts(i, 1);
-        A(:,k) = A(:,k) * multiples_counts(i, 2);
-    end
-    % Remove columns which are multiples
-    A(:, multiples(:,2)) = [];
+    tol = 1e-10;    
     [m, n] = size(A);
 
     % Constraints in the enhanced space B*[u1^+ u1^- u2tilde z^+ z^-] = b
@@ -58,13 +43,6 @@ function pars = get_u(A)
     if max(abs(sum(abs(A'*U')) - 1)) >= tol
         error('Solutions do not have norm 1');
     end
-
-    pars = [];
-    pars.A = A;
-    pars.A_original = A_original;
-    pars.U = U;
-    pars.zero_columns = zero_columns;
-    pars.multiples = multiples;
 end
 
 
