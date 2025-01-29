@@ -21,6 +21,8 @@ classdef Pars < handle
         function self = Pars(A)
             tol = 1e-10;
 
+            self.A = A;
+            self.n = size(A, 2);            
 
 
 
@@ -52,8 +54,6 @@ classdef Pars < handle
             if rank_A ~= m
                 error('Matrix does not have linearly independent rows');
             end
-            self.A = A;
-            self.n = n;            
             if n == m
                 self.A_case = 1;
                 self.D = inv(A);

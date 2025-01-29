@@ -40,7 +40,7 @@ classdef Solver < handle
                 K = pars.K{i_max};
 
                 % Use the complementarity conditions to compute the primal solution
-                x = zeros(size(pars.A, 2), 1);
+                x = zeros(length(I), 1);
                 x(J) = optimal_value;
                 x(K) = -optimal_value;
 
@@ -69,7 +69,7 @@ classdef Solver < handle
                 error('case not known');
             end
             x = self.pars.expand_solution(x);
-            %self.check_solution_quality(x, y, optimal_value);
+            self.check_solution_quality(x, y, optimal_value);
         end
 
         function x = n_n_plus_one_min_norm_solution_matrix_form(self, A, b)
@@ -144,7 +144,7 @@ classdef Solver < handle
 
         function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
-            if norm(self.pars.A_original*x-y) > self.tol
+            if norm(self.pars.A*x-y) > self.tol
                 throw("Problem was not solved");
             end
             if max(abs(x)) > optimal_value + self.tol
