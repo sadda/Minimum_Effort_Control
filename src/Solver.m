@@ -1,17 +1,15 @@
 classdef Solver < handle
     properties
         pars
-        tol
+        tol = 1e-10;
     end
 
     methods
         function self = Solver(pars, tol)
-            if nargin < 2
-                tol = 1e-10;
+            if nargin >= 2
+                self.tol = tol;
             end
-
             self.pars = pars;
-            self.tol = tol;
         end
 
         function [x, optimal_value] = min_effort(self, y)
