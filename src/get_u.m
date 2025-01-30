@@ -1,19 +1,23 @@
-function U = get_u(A)
+function U = get_u(A, B)
     % get_u Computes the set of extremal points of the dual feasible set
-    %    ||A'*u|| <= 1
+    %    ||A'*u + B'*v|| <= 1, v <= 0.
     %
     % Inputs:
     % A (matrix): matrix A specifying the problem.
     %
     % Outputs:
     % U (matrix): extremal points of the dual feasible set.
-    
-    tol = 1e-10;    
-    [m, n] = size(A);
+
+    tol = 1e-10;
+    [m1, n] = size(A);
+    if nargin < 2 || isempty(B)
+        B = zeros(0, n);
+    end
+    m2 = size(B, 1);
 
     % Constraints in the enhanced space B*[u1^+ u1^- u2tilde z^+ z^-] = b
-    C = [A' -A' -eye(n) eye(n); ...
-        zeros(1,m) zeros(1,m) ones(1,n) ones(1,n)];
+    C = [A' -A' -B' -eye(n) eye(n); ...
+        zeros(1,m1) zeros(1,m1) zeros(1,m2) ones(1,n) ones(1,n)];
     c = [zeros(n,1); 1];
 
     % Generate all indices to select square submatrices of B
@@ -26,7 +30,7 @@ function U = get_u(A)
     end
 
     % Reduce the extremal points to the original space
-    U = [U_ext(1:m,:) - U_ext(m+1:2*m,:)];
+    U = [U_ext(1:m1,:) - U_ext(m1+1:2*m1,:); -U_ext(2*m1+1:2*m1+m2,:)];
 
     % Remove duplicities
     U = unique(U', 'rows')';
@@ -39,8 +43,8 @@ function U = get_u(A)
     % This is used only for numerical errors
     U = convhulln_error(U);
 
-    % Feasibility check for ||A'*u|| = 1
-    if max(abs(sum(abs(A'*U')) - 1)) >= tol
+    % Feasibility check for |A'*u| = 1 and |B'*u| = 1
+    if max(abs(sum(abs([A; B]'*U')) - 1)) >= tol
         error('Solutions do not have norm 1');
     end
 end
