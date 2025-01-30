@@ -34,8 +34,9 @@ classdef Solver < handle
                     x = x - 0.5*(min(x)+max(x));
                     optimal_value = max(abs(x));
                 elseif pars.A_subcase == 2
-                    % TODO: implement
-                    error('not implemented yet');
+                    % TODO: change names
+                    x = self.n_n_plus_one_min_norm_solution(pars.D * y, pars.a);
+                    optimal_value = max(abs(x));
                 else
                     error('case not known');
                 end
@@ -57,12 +58,13 @@ classdef Solver < handle
                 if pars.A_subcase{i_max} == 1
                     x(I) = pars.D{i_max}*d;
                 elseif pars.A_subcase{i_max} == 2
-                    % TODO: handle any a_i=0
                     u = pars.D{i_max}*d;
                     a = pars.a{i_max};
-                    s_max = max(-optimal_value./abs(a) - u./a);
-                    s_min = min(optimal_value./abs(a) - u./a);
-                    if s_min < s_max
+                    % TODO: do better
+                    qwe = abs(a) > self.tol;
+                    s_max = max(-optimal_value./abs(a(qwe)) - u(qwe)./a(qwe));
+                    s_min = min(optimal_value./abs(a(qwe)) - u(qwe)./a(qwe));
+                    if s_min < s_max - self.tol
                         error('s_min larger than s_max');
                     end
                     x(I) = u + 0.5*(s_min+s_max)*a;
