@@ -11,7 +11,6 @@ wt = 2*pi*50*ts;
 
 %% Input: Clarke's transform A and required voltage y
 
-% SKIPPING 16
 for j = 1:18
     j
     switch j
@@ -146,7 +145,6 @@ for j = 1:18
             % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
         case 16
             % Nine-phase system, DOF: V0
-            continue;
             fi = 2/9*pi;
             A = 2/9*[1, cos(fi), cos(2*fi), cos(3*fi), cos(4*fi), cos(-4*fi), cos(-3*fi), cos(-2*fi), cos(-fi);...
                 0, sin(fi), sin(2*fi), sin(3*fi), sin(4*fi), sin(-4*fi), sin(-3*fi), sin(-2*fi), sin(-fi);...
@@ -192,30 +190,37 @@ for j = 1:18
     end
     solver = Solver(pars);
     [n_y, n_x] = size(A);
+    D = A' / (A*A');
 
     xs = zeros(n_x, n_t);
+    xs_l2 = zeros(n_x, n_t);
     for k = 1:n_t
         xs(:,k) = solver.min_effort(ys(:,k));
+        xs_l2(:,k) = D*ys(:,k);
     end
 
-    ylims = 1.1*[-max(xs(:)); max(xs(:))];
+    ylims = [-max(xs_l2(:)); max(xs_l2(:))];
 
     fig = figure();
     set(gcf, 'Position', get(0, 'Screensize'));
 
-    subplot(1, 2, 1);
+    subplot(1, 3, 1);
     plot(ts, ys');
     xlabel('Time [s]');
     ylabel('Required voltage');
     title('Case ' + string(j))
-    subplot(1, 2, 2);
+    subplot(1, 3, 2);
     plot(ts, xs');
     xlabel('Time [s]');
     ylabel('Input voltage');
     title('Our approach');
     ylim(ylims);
-
-    pars.analyze_solution();
+    subplot(1, 3, 3);
+    plot(ts, xs_l2');
+    xlabel('Time [s]');
+    ylabel('Input voltage');
+    title('l2 approach');
+    ylim(ylims);
 end
 
 
