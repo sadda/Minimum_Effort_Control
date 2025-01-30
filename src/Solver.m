@@ -27,6 +27,7 @@ classdef Solver < handle
             pars = self.pars; %#ok<*PROPLC>
             if pars.A_case == 1
                 x = pars.D * y;
+                optimal_value = max(abs(x));
             elseif pars.A_case == 2
                 if pars.A_subcase == 1
                     x = pars.D * y;
@@ -66,8 +67,8 @@ classdef Solver < handle
                     end
                     x(I) = u + 0.5*(s_min+s_max)*a;
                 elseif pars.A_subcase{i_max} == 3
-                    % TODO: implement
-                    error('not implemented yet');
+                    solver_new = Solver(pars.pars_subset{i_max}, self.tol);
+                    x(I) = solver_new.min_effort(d);
                 else
                     error('case not known');
                 end

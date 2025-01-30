@@ -15,23 +15,21 @@ classdef Pars < handle
         K = {};
         idx = {};
         d_vec = {};
+        pars_subset = {};
     end
 
     methods
         function self = Pars(A)
             tol = 1e-10;
-
             self.A = A;
-            self.n = size(A, 2);            
-
-
+            self.n = size(A, 2);
 
             % Find zeros columns
-            zero_columns = vecnorm(A) <= tol;
+            zero_columns = vecnorm(A, 2, 1) <= tol;
             A = A(:, ~zero_columns);
 
             % Find columns which are multiples of each other
-            [multiples, multiples_counts] = find_column_multiples(A);
+            [multiples, multiples_counts] = find_column_multiples(A, tol);
             % Multiply the columns which are multiplied
             for i = 1:size(multiples_counts,1)
                 k = multiples_counts(i, 1);
@@ -43,10 +41,6 @@ classdef Pars < handle
             self.zero_columns = zero_columns;
             self.multiples = multiples;
             self.multiples_counts = multiples_counts;
-
-
-
-
 
             % TODO: implement zero columns and multiples
             [m, n] = size(A);
@@ -91,7 +85,8 @@ classdef Pars < handle
                         self.D{i} = A_I' / (A_I*A_I');
                         self.a{i} = null(A_I);
                     else
-                        error('Not yet implemented');
+                        self.A_subcase{i} = 3;
+                        self.pars_subset{i} = Pars(A_I);
                     end
                     self.d_vec{i} = sum(A(:, self.J{i}), 2) - sum(A(:, self.K{i}), 2);
                     self.U = U;
@@ -122,8 +117,7 @@ end
 
 
 
-function [multiples, multiples_counts] = find_column_multiples(A)
-    tol = 1e-10;
+function [multiples, multiples_counts] = find_column_multiples(A, tol)
     n = size(A, 2);
     multiples = zeros(0, 3);
     for i = 1:n
