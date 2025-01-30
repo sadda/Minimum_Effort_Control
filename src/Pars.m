@@ -21,18 +21,18 @@ classdef Pars < handle
     end
 
     methods
-        function self = Pars(A, ignore_multiples, tol)
-            if nargin < 2 || isempty(ignore_multiples)
-                ignore_multiples = true;
+        function self = Pars(A, remove_same_columns, tol)
+            if nargin < 2 || isempty(remove_same_columns)
+                remove_same_columns = true;
             end
             if nargin >= 3
                 self.tol = tol;
             end
-            self.add_data(A, ignore_multiples);
+            self.add_data(A, remove_same_columns);
         end
 
-        function add_data(self, A, ignore_multiples)
-            A = self.modify_input_matrix(A, ignore_multiples);
+        function add_data(self, A, remove_same_columns)
+            A = self.modify_input_matrix(A, remove_same_columns);
 
             rank_A = rank(A);
             if rank_A ~= self.m
@@ -86,7 +86,7 @@ classdef Pars < handle
             end
         end
 
-        function A = modify_input_matrix(self, A, ignore_multiples)
+        function A = modify_input_matrix(self, A, remove_same_columns)
             self.A_original = A;
             [self.m, self.n] = size(A);
 
@@ -94,7 +94,7 @@ classdef Pars < handle
             self.zero_columns = vecnorm(A, 2, 1) <= self.tol;
             A = A(:, ~self.zero_columns);
 
-            if ignore_multiples
+            if remove_same_columns
                 % Find columns which are multiples of each other
                 [self.multiples, self.multiples_counts] = find_column_multiples(A, self.tol);
                 % Multiply the columns which are multiplied
