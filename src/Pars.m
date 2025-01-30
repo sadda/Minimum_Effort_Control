@@ -48,7 +48,10 @@ classdef Pars < handle
             if rank_A ~= m
                 error('Matrix does not have linearly independent rows');
             end
-            if n == m
+            if m == 1 % Theoretically this should never happen in multiples work correctly
+                self.A_case = 1;
+                self.D = 1/sum(abs(A))*ones(n, 1).*sign(A');
+            elseif n == m
                 self.A_case = 1;
                 self.D = inv(A);
             elseif n == m + 1
