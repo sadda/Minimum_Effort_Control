@@ -19,7 +19,11 @@ classdef Pars < handle
     end
 
     methods
-        function self = Pars(A)
+        function self = Pars(A, ignore_multiples)
+            if nargin < 2
+                ignore_multiples = true;
+            end
+
             tol = 1e-10;
             self.A = A;
             self.n = size(A, 2);
@@ -27,28 +31,32 @@ classdef Pars < handle
             % Find zeros columns
             zero_columns = vecnorm(A, 2, 1) <= tol;
             A = A(:, ~zero_columns);
-
-            % Find columns which are multiples of each other
-            [multiples, multiples_counts] = find_column_multiples(A, tol);
-            % Multiply the columns which are multiplied
-            for i = 1:size(multiples_counts,1)
-                k = multiples_counts(i, 1);
-                A(:,k) = A(:,k) * multiples_counts(i, 2);
-            end
-            % Remove columns which are multiples
-            A(:, multiples(:,2)) = [];
-
             self.zero_columns = zero_columns;
-            self.multiples = multiples;
-            self.multiples_counts = multiples_counts;
 
-            % TODO: implement zero columns and multiples
+            if ignore_multiples
+                % Find columns which are multiples of each other
+                [multiples, multiples_counts] = find_column_multiples(A, tol);
+                % Multiply the columns which are multiplied
+                for i = 1:size(multiples_counts,1)
+                    k = multiples_counts(i, 1);
+                    A(:,k) = A(:,k) * multiples_counts(i, 2);
+                end
+                % Remove columns which are multiples
+                A(:, multiples(:,2)) = [];
+
+                self.multiples = multiples;
+                self.multiples_counts = multiples_counts;
+            else
+                self.multiples = zeros(0, 3);
+                self.multiples_counts = zeros(0, 2);
+            end
+
             [m, n] = size(A);
             rank_A = rank(A);
             if rank_A ~= m
                 error('Matrix does not have linearly independent rows');
             end
-            if m == 1 % Theoretically this should never happen in multiples work correctly
+            if m == 1
                 self.A_case = 1;
                 self.D = 1/sum(abs(A))*ones(n, 1).*sign(A');
             elseif n == m
