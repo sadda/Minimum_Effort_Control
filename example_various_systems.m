@@ -8,6 +8,7 @@ addpath("src")
 ts = 0:100e-6:0.04;
 n_t = length(ts);
 wt = 2*pi*50*ts;
+remove_same_columns = true;
 
 %% Input: Clarke's transform A and required voltage y
 
@@ -181,11 +182,11 @@ for j = 1:18
             disp("Error: System matrix A not defined.");
     end
 
-    file_name = 'data/test_pars_' + string(j) + '.mat';
+    file_name = 'data/test_pars_' + string(j) + '_' + string(remove_same_columns) + '.mat';
     if isfile(file_name)
         load(file_name, "pars");
     else
-        pars = Pars(A);
+        pars = Pars(A, remove_same_columns);
         save(file_name, "pars");
     end
     solver = Solver(pars);
