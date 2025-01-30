@@ -81,17 +81,6 @@ classdef Solver < handle
             self.check_solution_quality(x, y, optimal_value);
         end
 
-        function x = n_n_plus_one_min_norm_solution_matrix_form(self, A, b)
-            self.check_n_n_plus_one(A)
-
-            % Find the kernel and a particular solution
-            d = null(A);
-            x0 = A \ b;
-
-            % Find the solution
-            x = self.n_n_plus_one_min_norm_solution(x0, d);
-        end
-
         function x_opt = n_n_plus_one_min_norm_solution(~, x0, d)
             % Finds x = x0+s*d with minimal l_infty norm.
             n = length(d);
@@ -118,39 +107,6 @@ classdef Solver < handle
             end
         end
 
-        function [x0, v, s_min, s_max] = n_n_plus_one_all_solutions_matrix_form(self, A, b, max_inf_norm)
-            self.check_n_n_plus_one(A)
-
-            % Find the kernel and a particular solution
-            v = null(A);
-            if v(1) ~= 0
-                v = v ./ v(1);
-                v = v ./ sign(v(1));
-            end
-            x0 = A \ b;
-
-            % Find the solution
-            [s_min, s_max] = self.n_n_plus_one_all_solutions(x0, v, max_inf_norm);
-        end
-
-        function [s_min, s_max] = n_n_plus_one_all_solutions(~, x0, v, max_inf_norm)
-            % Finds all solution x = x0+s*v with l_infty norm below max_inf_norm.
-            % In the case of v=null(A) and x0=A\b when A has size n*(n+1),
-            % the function finds the solution of A*x=b.
-
-            s_min = -inf;
-            s_max = inf;
-            for i=1:length(v)
-                if v(i) > 0
-                    s_min = max(s_min, (-max_inf_norm - x0(i)) / v(i));
-                    s_max = min(s_max, (max_inf_norm - x0(i)) / v(i));
-                else
-                    s_min = max(s_min, (max_inf_norm - x0(i)) / v(i));
-                    s_max = min(s_max, (-max_inf_norm - x0(i)) / v(i));
-                end
-            end
-        end
-
         function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
             if norm(self.pars.A*x-y) > self.tol
@@ -159,12 +115,6 @@ classdef Solver < handle
             if max(abs(x)) > optimal_value + self.tol
                 warning("COMPUTATIONS FAILED. SOLUTION IS SOBOPTIMAL.");
             end
-        end
-
-        function check_n_n_plus_one(~, A)
-            [m, n] = size(A);
-            assert(m + 1 == n, "Matrix A must have shape (m, m+1).");
-            assert(rank(A) == m, "Matrix A must have rank m.");
         end
     end
 end
