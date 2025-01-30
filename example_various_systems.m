@@ -9,6 +9,7 @@ ts = 0:100e-6:0.04;
 n_t = length(ts);
 wt = 2*pi*50*ts;
 remove_same_columns = true;
+y_original = true;
 
 %% Input: Clarke's transform A and required voltage y
 
@@ -55,9 +56,11 @@ for j = 1:18
                 0, sin(fi), sin(2*fi), sin(-2*fi), sin(-fi);...
                 1, cos(-2*fi), cos(fi), cos(-fi), cos(2*fi);...
                 0, sin(-2*fi), sin(fi), sin(-fi), sin(2*fi)];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 6
             % Five-phase system, fault-tolerant mode, DOF: Vx1, Vy1, V0
             fi = 2/5*pi;
@@ -84,9 +87,11 @@ for j = 1:18
                 0, sin(fi), sin(2*fi), sin(3*fi), sin(-3*fi), sin(-2*fi), sin(-fi);...
                 1, cos(3*fi), cos(-fi), cos(2*fi), cos(-2*fi), cos(fi), cos(-3*fi);...
                 0, sin(3*fi), sin(-fi), sin(2*fi), sin(-2*fi), sin(fi), sin(-3*fi)];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 10
             % Seven-phase system, DOF: Vx1, Vy1, V0
             fi = 2/7*pi;
@@ -94,9 +99,11 @@ for j = 1:18
                 0, sin(fi), sin(2*fi), sin(3*fi), sin(-3*fi), sin(-2*fi), sin(-fi);...
                 1, cos(-2*fi), cos(3*fi), cos(fi), cos(-fi), cos(-3*fi), cos(2*fi);...
                 0, sin(-2*fi), sin(3*fi), sin(fi), sin(-fi), sin(-3*fi), sin(2*fi)];
-            ys = 1*[cos(wt); sin(wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 11
             % Seven-phase system, DOF: V0
             fi = 2/7*pi;
@@ -106,9 +113,11 @@ for j = 1:18
                 0, sin(3*fi), sin(-fi), sin(2*fi), sin(-2*fi), sin(fi), sin(-3*fi);...
                 1, cos(-2*fi), cos(3*fi), cos(fi), cos(-fi), cos(-3*fi), cos(2*fi);...
                 0, sin(-2*fi), sin(3*fi), sin(fi), sin(-fi), sin(-3*fi), sin(2*fi)];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 12
             % Seven-phase system, fault-tolerant mode, DOF: Vx1, Vy1, Vx2, Vy2, V0
             fi = 2/7*pi;
@@ -128,9 +137,11 @@ for j = 1:18
                 0, sin(fi), sin(2*fi), sin(3*fi), sin(4*fi), sin(-4*fi), sin(-3*fi), sin(-2*fi), sin(-fi);...
                 1, cos(3*fi), cos(-3*fi), 1, cos(3*fi), cos(-3*fi), 1, cos(3*fi), cos(-3*fi);...
                 0, sin(3*fi), sin(-3*fi), 0, sin(3*fi), sin(-3*fi), 0, sin(3*fi), sin(-3*fi)];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 15
             % Nine-phase system, DOF: Vx3, Vy3, V0
             fi = 2/9*pi;
@@ -141,9 +152,11 @@ for j = 1:18
                 1, cos(-4*fi), cos(fi), cos(-3*fi), cos(2*fi), cos(-2*fi), cos(3*fi), cos(-fi), cos(4*fi);...
                 0, sin(-4*fi), sin(fi), sin(-3*fi), sin(2*fi), sin(-2*fi), sin(3*fi), sin(-fi), sin(4*fi);...
                 ];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 16
             % Nine-phase system, DOF: V0
             fi = 2/9*pi;
@@ -156,9 +169,11 @@ for j = 1:18
                 1, cos(-2*fi), cos(-4*fi), cos(3*fi), cos(fi), cos(-fi), cos(-3*fi), cos(4*fi), cos(2*fi);...
                 0, sin(-2*fi), sin(-4*fi), sin(3*fi), sin(fi), sin(-fi), sin(-3*fi), sin(4*fi), sin(2*fi);...
                 ];
-            ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt); 0.05*cos(7*wt); 0.05*sin(7*wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); 0.15*cos(3*wt); 0.15*sin(3*wt); 0.08*cos(5*wt); 0.08*sin(5*wt); 0.05*cos(7*wt); 0.05*sin(7*wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t); zeros(1,n_t)];
+            end
         case 17
             % Nine-phase system, fault-tolerant mode, DOF: Vx1, Vy1, Vx2, Vy2, Vx3, Vy3, V0
             fi = 2/9*pi;
@@ -175,9 +190,11 @@ for j = 1:18
                 0  0  0  1  0 -1  0 -1  1;... % ub = u21 - u23 + u33 - u32
                 0 -1  1  0  0  0  1  0 -1;];  % uc = u31 - u33 + u13 - u12
             A = A1*A2;
-            ys = 1*[cos(wt); sin(wt); -cos(wt)];
-            % Alternatively
-            % ys = 1*[cos(wt); sin(wt); zeros(1,n_t)];
+            if y_original
+                ys = 1*[cos(wt); sin(wt); -cos(wt)];
+            else
+                ys = 1*[cos(wt); sin(wt); zeros(1,n_t)];
+            end
         otherwise
             disp("Error: System matrix A not defined.");
     end
