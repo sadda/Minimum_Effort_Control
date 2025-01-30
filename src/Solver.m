@@ -24,52 +24,51 @@ classdef Solver < handle
             % x (vector): optimal solution of the above problem.
             % optimal_value (scalar): optimal value of the above problem.
 
-            pars = self.pars; %#ok<*PROPLC>
-            if pars.A_case == 1
-                x = pars.D * y;
+            if self.pars.A_case == 1
+                x = self.pars.D * y;
                 optimal_value = max(abs(x));
-            elseif pars.A_case == 2
-                if pars.A_subcase == 1
-                    x = pars.D * y;
+            elseif self.pars.A_case == 2
+                if self.pars.A_subcase == 1
+                    x = self.pars.D * y;
                     x = x - 0.5*(min(x)+max(x));
-                    optimal_value = max(abs(x));
-                elseif pars.A_subcase == 2
-                    % TODO: change names
-                    x = self.n_n_plus_one_min_norm_solution(pars.D * y, pars.a);
-                    optimal_value = max(abs(x));
+                elseif self.pars.A_subcase == 2
+                    x = self.solve_n_n_plus_one(self.pars.D * y, self.pars.a);
                 else
                     error('case not known');
                 end
-            elseif pars.A_case == 3
+                optimal_value = max(abs(x));
+            elseif self.pars.A_case == 3
+                % Find index of the optimal dual solution
                 [optimal_value, i_max] = max(self.pars.U*y);
+                I = self.pars.I{i_max};
+                J = self.pars.J{i_max};
+                K = self.pars.K{i_max};
 
-                I = pars.I{i_max};
-                J = pars.J{i_max};
-                K = pars.K{i_max};
-
-                % Use the complementarity conditions to compute the primal solution
+                % Prescibe primal solution on the non-active indices J and K
                 x = zeros(length(I), 1);
                 x(J) = optimal_value;
                 x(K) = -optimal_value;
 
-                d = y - pars.d_vec{i_max}*optimal_value;
-                d = d(pars.idx{i_max});
+                % Modify the right-hand side for solving A_I*x(I) = d
+                d = y - self.pars.d_vec{i_max}*optimal_value;
+                d = d(self.pars.D_idx{i_max});
 
-                if pars.A_subcase{i_max} == 1
-                    x(I) = pars.D{i_max}*d;
-                elseif pars.A_subcase{i_max} == 2
-                    u = pars.D{i_max}*d;
-                    a = pars.a{i_max};
-                    % TODO: do better
-                    qwe = abs(a) > self.tol;
-                    s_max = max(-optimal_value./abs(a(qwe)) - u(qwe)./a(qwe));
-                    s_min = min(optimal_value./abs(a(qwe)) - u(qwe)./a(qwe));
+                if self.pars.A_subcase{i_max} == 1
+                    x(I) = self.pars.D{i_max}*d;
+                elseif self.pars.A_subcase{i_max} == 2
+                    % Get a and u for non-zero components of a
+                    u = self.pars.D{i_max}*d;
+                    a = self.pars.a{i_max};
+                    idx = abs(a) > self.tol;
+                    % Find s_max and s_min
+                    s_max = max(-optimal_value./abs(a(idx)) - u(idx)./a(idx));
+                    s_min = min(optimal_value./abs(a(idx)) - u(idx)./a(idx));
                     if s_min < s_max - self.tol
                         error('s_min larger than s_max');
                     end
                     x(I) = u + 0.5*(s_min+s_max)*a;
-                elseif pars.A_subcase{i_max} == 3
-                    solver_new = Solver(pars.pars_subset{i_max}, self.tol);
+                elseif self.pars.A_subcase{i_max} == 3
+                    solver_new = Solver(self.pars.pars_subset{i_max}, self.tol);
                     x(I) = solver_new.min_effort(d);
                 else
                     error('case not known');
@@ -81,7 +80,7 @@ classdef Solver < handle
             self.check_solution_quality(x, y, optimal_value);
         end
 
-        function x_opt = n_n_plus_one_min_norm_solution(~, x0, d)
+        function x_opt = solve_n_n_plus_one(~, x0, d)
             % Finds x = x0+s*d with minimal l_infty norm.
             n = length(d);
             val_opt = inf;
@@ -109,7 +108,7 @@ classdef Solver < handle
 
         function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
-            if norm(self.pars.A*x-y) > self.tol
+            if norm(self.pars.A_original*x-y) > self.tol
                 throw("Problem was not solved");
             end
             if max(abs(x)) > optimal_value + self.tol

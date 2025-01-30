@@ -97,28 +97,3 @@ function U = convhulln_error(U)
 
     U = U(~remove,:);
 end
-
-function [multiples, multiples_counts] = find_column_multiples(A)
-    tol = 1e-10;
-    n = size(A, 2);
-    multiples = zeros(0, 3);
-    for i = 1:n
-        if ~ismember(i, multiples(:,2))
-            for j = i+1:n
-                v1 = A(:,i);
-                v2 = A(:,j);
-                c = v2 \ v1;
-                if norm(v1 - c*v2) <= tol
-                    multiples = [multiples; [i, j, c]];
-                end
-            end
-        end
-    end
-    multiples_unique = unique(multiples(:,1));
-    multiples_sum = zeros(length(multiples_unique), 1);
-    for i = 1:length(multiples_unique)
-        multiples_sum(i) = sum(abs(multiples(multiples(:,1)==multiples_unique(i),3))) + 1;
-    end
-    multiples_counts = [multiples_unique, multiples_sum];
-end
-

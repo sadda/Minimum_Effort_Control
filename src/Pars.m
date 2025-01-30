@@ -1,72 +1,54 @@
 classdef Pars < handle
     properties
-        A;
+        A_original;
+        m;
         n;
-        A_case;
-        A_subcase = {};
         zero_columns;
         multiples;
-        multiples_counts;
+        multiples_counts;        
+        A_case;
+        A_subcase = {};
         U;
-        D = {};
-        a = {};
         I = {};
         J = {};
         K = {};
-        idx = {};
+        D = {};
+        D_idx = {};
+        a = {};
         d_vec = {};
         pars_subset = {};
+        tol = 1e-10;
     end
 
     methods
-        function self = Pars(A, ignore_multiples)
-            if nargin < 2
+        function self = Pars(A, ignore_multiples, tol)
+            if nargin < 2 || isempty(ignore_multiples)
                 ignore_multiples = true;
             end
-
-            tol = 1e-10;
-            self.A = A;
-            self.n = size(A, 2);
-
-            % Find zeros columns
-            zero_columns = vecnorm(A, 2, 1) <= tol;
-            A = A(:, ~zero_columns);
-            self.zero_columns = zero_columns;
-
-            if ignore_multiples
-                % Find columns which are multiples of each other
-                [multiples, multiples_counts] = find_column_multiples(A, tol);
-                % Multiply the columns which are multiplied
-                for i = 1:size(multiples_counts,1)
-                    k = multiples_counts(i, 1);
-                    A(:,k) = A(:,k) * multiples_counts(i, 2);
-                end
-                % Remove columns which are multiples
-                A(:, multiples(:,2)) = [];
-
-                self.multiples = multiples;
-                self.multiples_counts = multiples_counts;
-            else
-                self.multiples = zeros(0, 3);
-                self.multiples_counts = zeros(0, 2);
+            if nargin >= 3
+                self.tol = tol;
             end
+            self.add_data(A, ignore_multiples);
+        end
 
-            [m, n] = size(A);
+        function add_data(self, A, ignore_multiples)
+            A = self.modify_input_matrix(A, ignore_multiples);
+
             rank_A = rank(A);
-            if rank_A ~= m
+            if rank_A ~= self.m
                 error('Matrix does not have linearly independent rows');
             end
-            if m == 1
+            if self.m == 1
                 self.A_case = 1;
-                self.D = 1/sum(abs(A))*ones(n, 1).*sign(A');
-            elseif n == m
+                self.D = 1/sum(abs(A))*ones(self.n, 1).*sign(A');
+            elseif self.n == self.m
                 self.A_case = 1;
                 self.D = inv(A);
-            elseif n == m + 1
+            elseif self.n == self.m + 1
                 self.A_case = 2;
                 self.D = A' / (A*A');
                 self.a = null(A);
-                if norm(self.a - mean(self.a)) < tol
+                if norm(self.a - mean(self.a)) < self.tol
                     self.A_subcase = 1;
                 else
                     self.A_subcase = 2;
@@ -74,15 +56,15 @@ classdef Pars < handle
             else
                 % TODO: remove symmetric elements
                 self.A_case = 3;
-                U = get_u(A);
-                for i = 1:size(U, 1)
-                    ATu = A'*U(i,:)';
-                    self.I{i} = (ATu <= tol) & (ATu >= -tol);
-                    self.J{i} = ATu > tol;
-                    self.K{i} = ATu < -tol;
+                self.U = get_u(A);
+                for i = 1:size(self.U, 1)
+                    ATu = A'*self.U(i,:)';
+                    self.I{i} = (ATu <= self.tol) & (ATu >= -self.tol);
+                    self.J{i} = ATu > self.tol;
+                    self.K{i} = ATu < -self.tol;
 
                     A_I = A(:, self.I{i});
-                    [A_I, self.idx{i}] = linearly_independent_rows(A_I);
+                    [A_I, self.D_idx{i}] = linearly_independent_rows(A_I);
                     [m_I, n_I] = size(A_I);
                     if rank(A_I) ~= m_I
                         error('Something is wrong. Matrix should have had linearly independent rows');
@@ -100,8 +82,31 @@ classdef Pars < handle
                         self.pars_subset{i} = Pars(A_I);
                     end
                     self.d_vec{i} = sum(A(:, self.J{i}), 2) - sum(A(:, self.K{i}), 2);
-                    self.U = U;
                 end
+            end
+        end
+
+        function A = modify_input_matrix(self, A, ignore_multiples)
+            self.A_original = A;
+            [self.m, self.n] = size(A);
+
+            % Find zeros columns
+            self.zero_columns = vecnorm(A, 2, 1) <= self.tol;
+            A = A(:, ~self.zero_columns);
+
+            if ignore_multiples
+                % Find columns which are multiples of each other
+                [self.multiples, self.multiples_counts] = find_column_multiples(A, self.tol);
+                % Multiply the columns which are multiplied
+                for i = 1:size(self.multiples_counts,1)
+                    k = self.multiples_counts(i, 1);
+                    A(:,k) = A(:,k) * self.multiples_counts(i, 2);
+                end
+                % Remove columns which are multiples
+                A(:, self.multiples(:,2)) = [];
+            else
+                self.multiples = zeros(0, 3);
+                self.multiples_counts = zeros(0, 2);
             end
         end
 
@@ -125,7 +130,6 @@ classdef Pars < handle
         end
     end
 end
-
 
 
 function [multiples, multiples_counts] = find_column_multiples(A, tol)
