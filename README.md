@@ -1,11 +1,13 @@
 # Linear systems with the minimum infinity norm
 
 This repo contains Matlab codes for finding the minimum infinity norm solution under linear constraints:
-\begin{align*}
+$$
+\begin{aligned}
 \text{minimize}\qquad &||x||_\infty \\
 \text{subject to}\qquad &Ax = y, \\
 &Bx \le z.
-\end{align*}
+\end{aligned}
+$$
 The proposed algorithm is suited for repeated computations of small systems with the same matrices $A$ and $B$ but different right-hand sides $y$ and $z$. It can handle only small matrices (of size up to $10\times 10$), however, the computation for these matrices takes around $10-100\mu s$ when implemented in a microprocessor. For the detailed description of the algorithm see [our paper](https://ieeexplore.ieee.org/abstract/document/9880551).
 
 
