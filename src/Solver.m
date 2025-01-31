@@ -33,8 +33,6 @@ classdef Solver < handle
                     x = x - 0.5*(min(x)+max(x));
                 elseif self.pars.A_subcase == 2
                     x = self.solve_n_n_plus_one(self.pars.D * y, self.pars.a);
-                else
-                    error('case not known');
                 end
                 optimal_value = max(abs(x));
             elseif self.pars.A_case == 3
@@ -52,16 +50,14 @@ classdef Solver < handle
                 if self.pars.A_subcase{i_max} ~= 0            
                     % Modify the right-hand side for solving A_I*x(I) = d
                     d = y - self.pars.d_vec{i_max}*optimal_value;
-                    d_A = d(1:self.pars.m);
-                    d_B = d(self.pars.m+1:end);
+                    d_A = d(1:self.pars.m_A);
+                    d_B = d(self.pars.m_A+1:end);
                     d_A = [d_A; d_B(self.pars.v_idx{i_max})];
                     d_A = d_A(self.pars.D_idx{i_max});
                     d_B = d_B(~self.pars.v_idx{i_max});
                     d = [d_A; d_B];
                 end
-                if self.pars.A_subcase{i_max} == 0
-
-                elseif self.pars.A_subcase{i_max} == 1
+                if self.pars.A_subcase{i_max} == 1
                     x(I) = self.pars.D{i_max}*d_A;
                 elseif self.pars.A_subcase{i_max} == 2
                     % Get a and u for non-zero components of a
@@ -78,11 +74,7 @@ classdef Solver < handle
                 elseif self.pars.A_subcase{i_max} == 3
                     solver_new = Solver(self.pars.pars_subset{i_max}, self.tol);
                     x(I) = solver_new.min_effort(d);
-                else
-                    error('case not known');
                 end
-            else
-                error('case not known');
             end
             x = self.pars.expand_solution(x);
             self.check_solution_quality(x, y, optimal_value);
@@ -116,10 +108,10 @@ classdef Solver < handle
 
         function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
-            if norm(self.pars.A_original*x-y(1:self.pars.m)) > self.tol
+            if norm(self.pars.A_original*x-y(1:self.pars.m_A)) > self.tol
                 throw("Problem was not solved");
             end
-            if norm(max(self.pars.B_original*x-y(self.pars.m+1:end), 0)) > self.tol
+            if norm(max(self.pars.B_original*x-y(self.pars.m_A+1:end), 0)) > self.tol
                 throw("Problem was not solved");
             end
             if max(abs(x)) > optimal_value + self.tol

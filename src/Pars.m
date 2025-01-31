@@ -1,11 +1,10 @@
 classdef Pars < handle
     properties
         A_original;
-        m;
-        n;
+        m_A;
         B_original;
         m_B;
-        n_B;
+        n;
         zero_columns;
         multiples;
         multiples_counts;        
@@ -39,24 +38,16 @@ classdef Pars < handle
         end
 
         function add_data(self, A, B, remove_same_columns)
-            A
-            B
             [A, B] = self.modify_input_matrix(A, B, remove_same_columns);
+            self.check_A()
 
-            if self.m == 0
-                error('Matrix A must not be empty');
-            end
-            rank_A = rank(A);
-            if rank_A ~= self.m
-                error('Matrix does not have linearly independent rows');
-            end
-            if self.m == 1 && self.m_B == 0
+            if self.m_A == 1 && self.m_B == 0
                 self.A_case = 1;
                 self.D = 1/sum(abs(A))*ones(self.n, 1).*sign(A');
-            elseif self.n == self.m
+            elseif self.n == self.m_A
                 self.A_case = 1;
                 self.D = inv(A);
-            elseif self.n == self.m + 1 && self.m_B == 0
+            elseif self.n == self.m_A + 1 && self.m_B == 0
                 % TODO: implement for B
                 self.A_case = 2;
                 self.D = A' / (A*A');
@@ -71,30 +62,22 @@ classdef Pars < handle
                 self.A_case = 3;
                 self.U = get_u(A, B);
                 for i = 1:size(self.U, 1)
-                    u = self.U(i,1:self.m)';
-                    v = self.U(i,self.m+1:end)';
+                    u = self.U(i, 1:self.m_A)';
+                    v = self.U(i, self.m_A+1:end)';
                     ABTu = A'*u + B'*v;
                     self.I{i} = (ABTu <= self.tol) & (ABTu >= -self.tol);
                     self.J{i} = ABTu > self.tol;
                     self.K{i} = ABTu < -self.tol;
 
                     if sum(self.I{i}) == 0
-                        % TODO: fix
                         self.A_subcase{i} = 0;
                         continue;
                     end
 
-                    % TODO: fix
-                    v_idx = v < -self.tol;
-                    self.v_idx{i} = v_idx;
-
+                    self.v_idx{i} = v < -self.tol;
                     A_I = A(:, self.I{i});
-                    B_I_eq = B(v_idx, self.I{i});
-                    B_I_ineq = B(~v_idx, self.I{i});
-
-A_I
-B_I_eq
-B_I_ineq
+                    B_I_eq = B(self.v_idx{i}, self.I{i});
+                    B_I_ineq = B(~self.v_idx{i}, self.I{i});
 
                     AB_I = [A_I; B_I_eq];
                     [AB_I, self.D_idx{i}] = linearly_independent_rows(AB_I);
@@ -113,8 +96,7 @@ B_I_ineq
                         self.a{i} = null(AB_I);
                     else
                         self.A_subcase{i} = 3;
-                        % TODO: more arguments
-                        self.pars_subset{i} = Pars(AB_I, B_I_ineq);
+                        self.pars_subset{i} = Pars(AB_I, B_I_ineq, remove_same_columns, self.tol);
                     end
                     AB = [A; B];
                     self.d_vec{i} = sum(AB(:, self.J{i}), 2) - sum(AB(:, self.K{i}), 2);
@@ -122,12 +104,20 @@ B_I_ineq
             end
         end
 
+        function check_A(self)
+            if self.m_A == 0
+                error('Matrix A must not be empty');
+            end
+            if rank(self.A_original) ~= self.m_A
+                error('Matrix does not have linearly independent rows');
+            end
+        end
+
         function [A, B] = modify_input_matrix(self, A, B, remove_same_columns)
             self.A_original = A;
             self.B_original = B;
-            % TODO: rename to m_A
-            [self.m, self.n] = size(A);
-            [self.m_B, self.n_B] = size(B);
+            [self.m_A, self.n] = size(A);
+            [self.m_B, ~] = size(B);
 
             % Find zeros columns
             AB = [A; B];
