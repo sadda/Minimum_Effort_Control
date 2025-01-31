@@ -1,20 +1,21 @@
 # Linear systems with the minimum infinity norm
 
-This repo contains Matlab codes for finding the solution of system of linear equalities ``Ax = y`` and inequalities ``Bx <= z`` with the smallest infinity norm. Due to splitting the computation to offline and online phases, our algorithm is suited for repeated computations of small systems with the same matrices ``A`` and ``B`` but different right-hand side ``y``. See more detailed information in [our paper](https://ieeexplore.ieee.org/abstract/document/9880551).
-
+This repo contains Matlab codes for finding the minimum infinity norm solution under linear constraints:
 $$
 \begin{align*}
-\text{minimize}\qquad ||x||_\infty \\
-Ax = y \\
-Bx \le z
+\text{minimize}\qquad &||x||_\infty \\
+\text{subject to}\qquad &Ax = y, \\
+&Bx \le z.
 \end{align*}
 $$
+The proposed algorithm is suited for repeated computations of small systems with the same matrices $A$ and $B$ but different right-hand sides $y$ and $z$. It can handle only small matrices (of size up to $10\times 10$), however, the computation for these matrices takes around $10-100\mu s$ when implemented in a microprocessor. For the detailed description of the algorithm see [our paper](https://ieeexplore.ieee.org/abstract/document/9880551).
+
 
 ## Algorithm
 
-The problem above can be written as a linear optimization problem. The theory of linear programming states that it is equivalent to its dual problem. Our algorithm is based on the idea that when ``A`` and ``B`` are fixed, the dual problem has only a finite number of possible solutions ``u``. We divide the algorithm into two phases:
-- <i>Offline phase</i>: We compute all possible dual solutions and save them into a matrix ``U``.
-- <i>Online phase</i>: When the right-hand side ``y`` gets known, we select the optimal solution ``u`` from the pre-computed set ``U`` and based on the complementarity conditions, we recover the primal solution ``x``.
+The algorithm is split into the phases:
+- <i>Offline phase</i>: preprocesses the matrices $A$ and $B$. This is the slow phase and may have significant memory requirements (see the variable `pars`).
+- <i>Online (fast) phase</i>: solves the problem for particular $y$ and $z$. This is the fast phase, where the solution can be found using basic operations (loops and mutliplications only) in a microprocessor within $10-100\mu s$.
 
 ## Application to multi-phase converters 1
 
@@ -47,10 +48,11 @@ for k = 1:n_t
 end
 ```
 
-The offline phase precomputes the matrix ``U``. It has only 10 elements, which means that the dual problem can be solved in 10 dot products. Our basic Matlab implementation needs only 0.05ms for one solution on a laptop.
+The offline phase precomputes the variable  ``pars``.
 
 ```
-U = get_u(A, B);
+pars = Pars(A, B);
+solver = Solver(pars);
 ```
 
 The online phase computes the optimal input voltage ``x`` for each realization of the output voltage ``y``.
@@ -58,7 +60,7 @@ The online phase computes the optimal input voltage ``x`` for each realization o
 ```
 xs = zeros(n_x, n_t);
 for k = 1:n_t
-    xs(:,k) = min_effort(A, B, ys(:,k), U);
+    xs(:,k) = solver.min_effort(A, B, ys(:,k), U);
 end
 ```
 
