@@ -3,7 +3,9 @@
 This repo contains Matlab codes for finding the solution of system of linear equalities ``Ax = y`` and inequalities ``Bx <= z`` with the smallest infinity norm. Due to splitting the computation to offline and online phases, our algorithm is suited for repeated computations of small systems with the same matrices ``A`` and ``B`` but different right-hand side ``y``. See more detailed information in [our paper](https://ieeexplore.ieee.org/abstract/document/9880551).
 
 $$
-\text{minimize}
+\text{minimize}\qquad \|x\|_\infty \\
+Ax = y \\
+Bx \le z
 $$
 
 ## Algorithm
