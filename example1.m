@@ -21,17 +21,19 @@ for k = 1:n_t
     ys(:,k) = 1*[cos(wt); sin(wt)];
 end
 
-%% Output: Precompute set U
+%% Output: Precompute offline part
 
 pars = Pars(A);
+solver = Solver(pars);
 
 %% Output: Get a solution for every time
 
 xs = zeros(n_x, n_t);
 xs_l2 = zeros(n_x, n_t);
+A_inv = A' / (A*A');
 for k = 1:n_t
-    xs(:,k) = min_effort(pars, ys(:,k));
-    xs_l2(:,k) = A'*((A*A')\ys(:,k));
+    xs(:,k) = solver.min_effort(ys(:,k));
+    xs_l2(:,k) = A_inv*ys(:,k);
 end
 
 %% Plot the results

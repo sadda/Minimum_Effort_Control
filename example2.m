@@ -6,7 +6,6 @@ clear all;
 close all;
 
 addpath("src")
-addpath("user-provided")
 
 %% Settings
 
@@ -49,16 +48,17 @@ for i = 1:length(kappas)
     end
 end
 
-%% Output: Precompute set U
+%% Output: Precompute offline part
 
-U = get_u(A, B);
+pars = Pars(A, B);
+solver = Solver(pars);
 
 %% Output: Get a solution for every time
 
 xs = zeros(n_x, n_t, n_k);
 for i = 1:length(kappas)
     for k = 1:n_t
-        xs(:,k,i) = min_effort_inequalities(A, B, ys(:,k,i), U, @find_x_2);
+        xs(:,k,i) = solver.min_effort(ys(:,k,i));
     end
 end
 
