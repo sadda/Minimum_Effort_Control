@@ -15,9 +15,9 @@ The proposed algorithm is suited for repeated computations of small systems with
 
 ## Algorithm
 
-The algorithm is split into the phases:
-- <i>Offline phase</i>: preprocesses the matrices $A$ and $B$. This is the slow phase and may have significant memory requirements (see the variable `pars`).
-- <i>Online (fast) phase</i>: solves the problem for particular $y$ and $z$. This is the fast phase, where the solution can be found using basic operations (loops and mutliplications only) in a microprocessor within $10-100\mu s$.
+The algorithm is split into two phases:
+- <b>Offline (slow) phase</b> preprocesses the matrices $A$ and $B$. This is the slow phase and may have significant memory requirements (see the variable `pars`).
+- <b>Online (fast) phase</b> solves the problem for particular $y$ and $z$. This is the fast phase, where the solution can be found using basic operations (loops and mutliplications only) in a microprocessor within $10-100\mu s$.
 
 ## Application to multi-phase converters 1
 
@@ -76,3 +76,19 @@ Instead of completely omitting the 3rd and 4th rows of the matrix, we can consid
 
 <img src="figures/kappa.gif" width="1100">
 
+## Citation
+
+If you like our package, please cite our [paper](https://ieeexplore.ieee.org/abstract/document/9880551).
+
+```
+@article{komrska2022multiphase,
+  title={Multiphase converter voltage optimization with minimum effort principle},
+  author={Komrska, Tom{\'a}{\v{s}} and Adam, Luk{\'a}{\v{s}} and Peroutka, Zden{\v{e}}k},
+  journal={IEEE Transactions on Industrial Electronics},
+  volume={70},
+  number={7},
+  pages={6461--6469},
+  year={2022},
+  publisher={IEEE}
+}
+```
