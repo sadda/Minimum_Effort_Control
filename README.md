@@ -4,7 +4,7 @@ This repo contains Matlab codes for finding the minimum infinity norm solution u
 
 $$
 \begin{align}
-\text{minimize}\qquad &||x||_\infty \\
+\text{minimize}\qquad &\Vert x\Vert_\infty \\
 \text{subject to}\qquad &Ax = y, \\
 &Bx \le z.
 \end{align}
