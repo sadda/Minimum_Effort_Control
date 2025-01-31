@@ -2,7 +2,6 @@ clear all;
 close all;
 
 addpath("src")
-addpath("user-provided")
 
 f = 50;
 w = 2*pi*f;
@@ -23,17 +22,27 @@ A2 = [ 1  0 -1  0 -1  1  0  0  0;... % ua = u11 - u13 + u23 - u22
     0 -1  1  0  0  0  1  0 -1;];  % uc = u31 - u33 + u13 - u12
 
 A = A1*A2;
+B = [ones(1, 9); -ones(1, 9)];
+
+% A = [
+%     0 1 2 3 4 5 6 7 8;
+%     2 3 4 5 6 7 8 9 9;
+% ];
+% A = randn(4,8);
+% A = randn(2,2);
+% A = [A A A];
+
+% Compute or load U
+
+% A(:,[5,7,8]) = [];
+pars = Pars(A, B, true);
+solver = Solver(pars);
+
 
 t = 0;
 dt = 20e-6;
 Tsim = 0.06;
 N = round(Tsim/dt) + 1;
-
-% Compute or load U
-
-% A(:,[5,7,8]) = [];
-pars = Pars(A);
-solver = Solver(pars);
 
 for k = 1:N
     wt = w*t;
@@ -48,6 +57,13 @@ for k = 1:N
         uc = 0;
     end
     y = A1*[ua;ub;uc];
+    %y = [y; 10000*ones(size(B,1),1)];
+    y = [y; 0.3*ones(size(B,1),1)];
+
+%     y = [y;0];
+% y = y(1:size(A,1));
+
+
     x = solver.min_effort(y);
 %     x = solver.min_effort_user_provided(y);
 
@@ -57,11 +73,11 @@ for k = 1:N
     t = t + dt;
 end
 
-y_lim = 0.8;
+% y_lim = 0.8;
 
 fig = figure;
 plot(o_t, [o_x(:,1),o_x(:,2),o_x(:,3)], 'LineWidth', 3); grid on;
-ylim([-y_lim,y_lim]);
+% ylim([-y_lim,y_lim]);
 xlim([0,Tsim]);
 set(gcf, 'Position', get(0, 'Screensize'));
 % exportgraphics(fig, 'Res3.png', 'Resolution', 600)

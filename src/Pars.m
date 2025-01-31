@@ -3,6 +3,9 @@ classdef Pars < handle
         A_original;
         m;
         n;
+        B_original;
+        m_B;
+        n_B;
         zero_columns;
         multiples;
         multiples_counts;        
@@ -16,35 +19,45 @@ classdef Pars < handle
         D_idx = {};
         a = {};
         d_vec = {};
+        v_idx = {};
         pars_subset = {};
         tol = 1e-10;
     end
 
     methods
-        function self = Pars(A, remove_same_columns, tol)
-            if nargin < 2 || isempty(remove_same_columns)
+        function self = Pars(A, B, remove_same_columns, tol)
+            if nargin < 2 || isempty(B)
+                B = zeros(0, size(A,2));
+            end
+            if nargin < 3 || isempty(remove_same_columns)
                 remove_same_columns = true;
             end
-            if nargin >= 3
+            if nargin >= 4
                 self.tol = tol;
             end
-            self.add_data(A, remove_same_columns);
+            self.add_data(A, B, remove_same_columns);
         end
 
-        function add_data(self, A, remove_same_columns)
-            A = self.modify_input_matrix(A, remove_same_columns);
+        function add_data(self, A, B, remove_same_columns)
+            A
+            B
+            [A, B] = self.modify_input_matrix(A, B, remove_same_columns);
 
+            if self.m == 0
+                error('Matrix A must not be empty');
+            end
             rank_A = rank(A);
             if rank_A ~= self.m
                 error('Matrix does not have linearly independent rows');
             end
-            if self.m == 1
+            if self.m == 1 && self.m_B == 0
                 self.A_case = 1;
                 self.D = 1/sum(abs(A))*ones(self.n, 1).*sign(A');
             elseif self.n == self.m
                 self.A_case = 1;
                 self.D = inv(A);
-            elseif self.n == self.m + 1
+            elseif self.n == self.m + 1 && self.m_B == 0
+                % TODO: implement for B
                 self.A_case = 2;
                 self.D = A' / (A*A');
                 self.a = null(A);
@@ -56,54 +69,84 @@ classdef Pars < handle
             else
                 % TODO: remove symmetric elements
                 self.A_case = 3;
-                self.U = get_u(A);
+                self.U = get_u(A, B);
                 for i = 1:size(self.U, 1)
-                    ATu = A'*self.U(i,:)';
-                    self.I{i} = (ATu <= self.tol) & (ATu >= -self.tol);
-                    self.J{i} = ATu > self.tol;
-                    self.K{i} = ATu < -self.tol;
+                    u = self.U(i,1:self.m)';
+                    v = self.U(i,self.m+1:end)';
+                    ABTu = A'*u + B'*v;
+                    self.I{i} = (ABTu <= self.tol) & (ABTu >= -self.tol);
+                    self.J{i} = ABTu > self.tol;
+                    self.K{i} = ABTu < -self.tol;
+
+                    if sum(self.I{i}) == 0
+                        % TODO: fix
+                        self.A_subcase{i} = 0;
+                        continue;
+                    end
+
+                    % TODO: fix
+                    v_idx = v < -self.tol;
+                    self.v_idx{i} = v_idx;
 
                     A_I = A(:, self.I{i});
-                    [A_I, self.D_idx{i}] = linearly_independent_rows(A_I);
-                    [m_I, n_I] = size(A_I);
-                    if rank(A_I) ~= m_I
+                    B_I_eq = B(v_idx, self.I{i});
+                    B_I_ineq = B(~v_idx, self.I{i});
+
+A_I
+B_I_eq
+B_I_ineq
+
+                    AB_I = [A_I; B_I_eq];
+                    [AB_I, self.D_idx{i}] = linearly_independent_rows(AB_I);
+                    [m_I, n_I] = size(AB_I);
+                    if rank(AB_I) ~= m_I
                         error('Something is wrong. Matrix should have had linearly independent rows');
                     end
 
                     if n_I == m_I
                         self.A_subcase{i} = 1;
-                        self.D{i} = inv(A_I);
-                    elseif n_I == m_I + 1
+                        self.D{i} = inv(AB_I);
+                    elseif n_I == m_I + 1 && isempty(B_I_ineq)
+                        % TODO: implement for B
                         self.A_subcase{i} = 2;
-                        self.D{i} = A_I' / (A_I*A_I');
-                        self.a{i} = null(A_I);
+                        self.D{i} = AB_I' / (AB_I*AB_I');
+                        self.a{i} = null(AB_I);
                     else
                         self.A_subcase{i} = 3;
-                        self.pars_subset{i} = Pars(A_I);
+                        % TODO: more arguments
+                        self.pars_subset{i} = Pars(AB_I, B_I_ineq);
                     end
-                    self.d_vec{i} = sum(A(:, self.J{i}), 2) - sum(A(:, self.K{i}), 2);
+                    AB = [A; B];
+                    self.d_vec{i} = sum(AB(:, self.J{i}), 2) - sum(AB(:, self.K{i}), 2);
                 end
             end
         end
 
-        function A = modify_input_matrix(self, A, remove_same_columns)
+        function [A, B] = modify_input_matrix(self, A, B, remove_same_columns)
             self.A_original = A;
+            self.B_original = B;
+            % TODO: rename to m_A
             [self.m, self.n] = size(A);
+            [self.m_B, self.n_B] = size(B);
 
             % Find zeros columns
-            self.zero_columns = vecnorm(A, 2, 1) <= self.tol;
+            AB = [A; B];
+            self.zero_columns = vecnorm(AB, 2, 1) <= self.tol;
             A = A(:, ~self.zero_columns);
+            B = B(:, ~self.zero_columns);
 
             if remove_same_columns
                 % Find columns which are multiples of each other
-                [self.multiples, self.multiples_counts] = find_column_multiples(A, self.tol);
+                [self.multiples, self.multiples_counts] = find_column_multiples(AB, self.tol);
                 % Multiply the columns which are multiplied
                 for i = 1:size(self.multiples_counts,1)
                     k = self.multiples_counts(i, 1);
                     A(:,k) = A(:,k) * self.multiples_counts(i, 2);
+                    B(:,k) = B(:,k) * self.multiples_counts(i, 2);
                 end
                 % Remove columns which are multiples
                 A(:, self.multiples(:,2)) = [];
+                B(:, self.multiples(:,2)) = [];
             else
                 self.multiples = zeros(0, 3);
                 self.multiples_counts = zeros(0, 2);

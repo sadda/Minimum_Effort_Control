@@ -49,12 +49,20 @@ classdef Solver < handle
                 x(J) = optimal_value;
                 x(K) = -optimal_value;
 
-                % Modify the right-hand side for solving A_I*x(I) = d
-                d = y - self.pars.d_vec{i_max}*optimal_value;
-                d = d(self.pars.D_idx{i_max});
+                if self.pars.A_subcase{i_max} ~= 0            
+                    % Modify the right-hand side for solving A_I*x(I) = d
+                    d = y - self.pars.d_vec{i_max}*optimal_value;
+                    d_A = d(1:self.pars.m);
+                    d_B = d(self.pars.m+1:end);
+                    d_A = [d_A; d_B(self.pars.v_idx{i_max})];
+                    d_A = d_A(self.pars.D_idx{i_max});
+                    d_B = d_B(~self.pars.v_idx{i_max});
+                    d = [d_A; d_B];
+                end
+                if self.pars.A_subcase{i_max} == 0
 
-                if self.pars.A_subcase{i_max} == 1
-                    x(I) = self.pars.D{i_max}*d;
+                elseif self.pars.A_subcase{i_max} == 1
+                    x(I) = self.pars.D{i_max}*d_A;
                 elseif self.pars.A_subcase{i_max} == 2
                     % Get a and u for non-zero components of a
                     u = self.pars.D{i_max}*d;
@@ -108,7 +116,10 @@ classdef Solver < handle
 
         function check_solution_quality(self, x, y, optimal_value)
             % Check for solution optimality
-            if norm(self.pars.A_original*x-y) > self.tol
+            if norm(self.pars.A_original*x-y(1:self.pars.m)) > self.tol
+                throw("Problem was not solved");
+            end
+            if norm(max(self.pars.B_original*x-y(self.pars.m+1:end), 0)) > self.tol
                 throw("Problem was not solved");
             end
             if max(abs(x)) > optimal_value + self.tol
