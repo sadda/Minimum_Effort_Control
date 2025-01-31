@@ -1,6 +1,10 @@
 # Linear systems with the minimum infinity norm
 
-This repo contains Matlab codes for finding the solution of system of linear equalities ``Ax = y`` and inequalities ``Bx <= y`` with the smallest infinity norm. Due to splitting the computation to offline and online phases, our algorithm is suited for repeated computations of small systems with the same matrices ``A`` and ``B`` but different right-hand side ``y``. See more detailed information in our paper.
+This repo contains Matlab codes for finding the solution of system of linear equalities ``Ax = y`` and inequalities ``Bx <= z`` with the smallest infinity norm. Due to splitting the computation to offline and online phases, our algorithm is suited for repeated computations of small systems with the same matrices ``A`` and ``B`` but different right-hand side ``y``. See more detailed information in [our paper](https://ieeexplore.ieee.org/abstract/document/9880551).
+
+$$
+\operatorname{minimize}
+$$
 
 ## Algorithm
 
