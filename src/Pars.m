@@ -10,6 +10,7 @@ classdef Pars < handle
         multiples_counts;        
         A_case;
         A_subcase = {};
+        D_l2;
         U;
         I = {};
         J = {};
@@ -41,6 +42,7 @@ classdef Pars < handle
             [A, B] = self.modify_input_matrix(A, B, remove_same_columns);
             self.check_A()
 
+            self.D_l2 = A' / (A*A');
             if self.m_A == 1 && self.m_B == 0
                 self.A_case = 1;
                 self.D = 1/sum(abs(A))*ones(self.n, 1).*sign(A');

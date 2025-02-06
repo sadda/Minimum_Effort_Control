@@ -30,10 +30,9 @@ solver = Solver(pars);
 
 xs = zeros(n_x, n_t);
 xs_l2 = zeros(n_x, n_t);
-A_inv = A' / (A*A');
 for k = 1:n_t
     xs(:,k) = solver.min_effort(ys(:,k));
-    xs_l2(:,k) = A_inv*ys(:,k);
+    xs_l2(:,k) = solver.l2_solution(ys(:,k));
 end
 
 %% Plot the results
