@@ -62,7 +62,7 @@ The online phase computes the optimal input voltage ``x`` for each realization o
 ```
 xs = zeros(n_x, n_t);
 for k = 1:n_t
-    xs(:,k) = solver.min_effort(A, B, ys(:,k), U);
+    xs(:,k) = solver.min_effort(ys(:,k));
 end
 ```
 
