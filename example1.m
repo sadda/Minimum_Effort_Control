@@ -43,7 +43,7 @@ fig = figure();
 plot(ts, ys');
 xlabel('Time [s]');
 ylabel('Required voltage');
-saveas(fig, 'figures/res1.png')
+exportgraphics(fig, 'figures/res1.png', 'Resolution', 600);
 
 fig = figure();
 plot(ts, xs');
@@ -51,7 +51,7 @@ xlabel('Time [s]');
 ylabel('Input voltage');
 title('Our approach');
 ylim(ylims);
-saveas(fig, 'figures/res2.png')
+exportgraphics(fig, 'figures/res2.png', 'Resolution', 600);
 
 fig = figure();
 plot(ts, xs_l2');
@@ -59,4 +59,4 @@ xlabel('Time [s]');
 ylabel('Input voltage');
 title('Standard approach');
 ylim(ylims);
-saveas(fig, 'figures/res3.png')
+exportgraphics(fig, 'figures/res3.png', 'Resolution', 600);
