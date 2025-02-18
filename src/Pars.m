@@ -122,14 +122,13 @@ classdef Pars < handle
             [self.m_B, ~] = size(B);
 
             % Find zeros columns
-            AB = [A; B];
-            self.zero_columns = vecnorm(AB, 2, 1) <= self.tol;
+            self.zero_columns = vecnorm([A; B], 2, 1) <= self.tol;
             A = A(:, ~self.zero_columns);
             B = B(:, ~self.zero_columns);
 
             if remove_same_columns
                 % Find columns which are multiples of each other
-                [self.multiples, self.multiples_counts] = find_column_multiples(AB, self.tol);
+                [self.multiples, self.multiples_counts] = find_column_multiples([A; B], self.tol);
                 % Multiply the columns which are multiplied
                 for i = 1:size(self.multiples_counts,1)
                     k = self.multiples_counts(i, 1);
