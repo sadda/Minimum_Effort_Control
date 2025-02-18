@@ -1,7 +1,10 @@
-function h = plot_figures(ts, xs, A1, A2, Um, y_lim, kappa)
+function h = plot_figures(ts, xs, A1, A2, Um, y_lim, kappa, visible)
+    if nargin < 8
+        visible = 'off';
+    end
     disc = linspace(0, 2*pi, 100);
     
-    h = figure('visible', 'off', 'position', 4*[0, 0, 400, 100]);
+    h = figure('visible', visible, 'position', 4*[0, 0, 400, 100]);
     set(gcf, 'color', 'white')
     axis tight manual% this ensures that getframe() returns a consistent size
     
