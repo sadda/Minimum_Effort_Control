@@ -12,10 +12,30 @@ classdef Solver < handle
             self.pars = pars;
         end
 
+        function [x, optimal_value] = l2_solution(self, y)
+            % l2_solution Our algorithm for solving the l2 solution
+            %    minimize     ||x||_2
+            %    subject to   self.pars.A_original * x = y
+            %
+            % Inputs:
+            % y (vector): vector y from above.
+            %
+            % Outputs:
+            % x (vector): optimal solution of the above problem.
+            % optimal_value (scalar): optimal value of the above problem.
+
+            if self.pars.m_B > 0
+                error('l2 solution only works for B = [].');
+            end
+            x = self.pars.D_l2 * y;
+            optimal_value = max(abs(x));
+        end
+
         function [x, optimal_value] = min_effort(self, y)
             % min_effort Our algorithm for solving the minimum effort problem
             %    minimize     ||x||_infty
             %    subject to   self.pars.A_original * x = y
+            %                 self.pars.B_original * x <= y
             %
             % Inputs:
             % y (vector): vector y from above.

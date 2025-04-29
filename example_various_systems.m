@@ -203,7 +203,7 @@ for j = 1:18
     if isfile(file_name)
         load(file_name, "pars");
     else
-        pars = Pars(A, remove_same_columns);
+        pars = Pars(A, [], remove_same_columns);
         save(file_name, "pars");
     end
     solver = Solver(pars);
@@ -215,7 +215,7 @@ for j = 1:18
     for k = 1:n_t
         xs(:,k) = solver.min_effort(ys(:,k));
         xs_l2(:,k) = D*ys(:,k);
-    end
+    end    
 
     ylims = [-max(xs_l2(:)); max(xs_l2(:))];
 

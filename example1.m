@@ -30,10 +30,9 @@ solver = Solver(pars);
 
 xs = zeros(n_x, n_t);
 xs_l2 = zeros(n_x, n_t);
-A_inv = A' / (A*A');
 for k = 1:n_t
     xs(:,k) = solver.min_effort(ys(:,k));
-    xs_l2(:,k) = A_inv*ys(:,k);
+    xs_l2(:,k) = solver.l2_solution(ys(:,k));
 end
 
 %% Plot the results
@@ -44,7 +43,7 @@ fig = figure();
 plot(ts, ys');
 xlabel('Time [s]');
 ylabel('Required voltage');
-saveas(fig, 'figures/res1.png')
+exportgraphics(fig, 'figures/res1.png', 'Resolution', 600);
 
 fig = figure();
 plot(ts, xs');
@@ -52,7 +51,7 @@ xlabel('Time [s]');
 ylabel('Input voltage');
 title('Our approach');
 ylim(ylims);
-saveas(fig, 'figures/res2.png')
+exportgraphics(fig, 'figures/res2.png', 'Resolution', 600);
 
 fig = figure();
 plot(ts, xs_l2');
@@ -60,4 +59,4 @@ xlabel('Time [s]');
 ylabel('Input voltage');
 title('Standard approach');
 ylim(ylims);
-saveas(fig, 'figures/res3.png')
+exportgraphics(fig, 'figures/res3.png', 'Resolution', 600);
